@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 
@@ -163,13 +164,20 @@ app.MapGet("/api/status", async (HttpContext context) =>
 
         try
         {
-            var ipHostInfo = Dns.GetHostEntry(domainToCheck);
-            if (ipHostInfo.AddressList.Length > 0)
+            using (var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(5)))
             {
-                dnsIp = ipHostInfo.AddressList[0].ToString();
-                isSynchronized = (publicIp == dnsIp);
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] DNS: {dnsIp}, Sync: {isSynchronized}");
+                var ipHostInfo = await Dns.GetHostEntryAsync(domainToCheck);
+                if (ipHostInfo.AddressList.Length > 0)
+                {
+                    dnsIp = ipHostInfo.AddressList[0].ToString();
+                    isSynchronized = (publicIp == dnsIp);
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] DNS: {dnsIp}, Sync: {isSynchronized}");
+                }
             }
+        }
+        catch (OperationCanceledException)
+        {
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] DNS timeout (5s)");
         }
         catch (Exception dnsEx)
         {
