@@ -152,25 +152,6 @@
             word-break: break-all;
         }
 
-        .status-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #4caf50;
-            margin-right: 6px;
-        }
-
-        .status-indicator.pending {
-            background: #ff9500;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-
         .countdown-box {
             background: rgba(156, 39, 176, 0.1);
             border: 1px solid rgba(156, 39, 176, 0.5);
@@ -193,13 +174,6 @@
         #syncText {
             color: #ff9500;
             transition: color 0.3s ease;
-        }
-
-        .controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 15px;
         }
 
         button {
@@ -241,6 +215,13 @@
             box-shadow: 0 5px 15px rgba(156, 39, 176, 0.4);
         }
 
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
         .controls-danger {
             margin-bottom: 20px;
         }
@@ -270,7 +251,7 @@
         }
 
         .cmd-group {
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
 
         .cmd-label {
@@ -420,15 +401,6 @@
             Auto-reset en: <span id="countdown">Calculando...</span> • Estado: <span id="syncText">Sincronizando...</span>
         </div>
 
-        <div class="controls">
-            <button class="btn-update" onclick="updateNow()">Actualizar</button>
-            <button class="btn-refresh" onclick="location.reload()">Refresh</button>
-        </div>
-
-        <div class="controls-danger">
-            <button class="btn-disconnect" onclick="disconnect()">❌ Desconectar</button>
-        </div>
-
         <div id="credentialsSection" class="section" style="display: none;">
             <h3>🔐 Cambiar Credenciales</h3>
             <div class="form-group">
@@ -446,7 +418,7 @@
             <h3>📡 Consola</h3>
 
             <div class="cmd-group">
-                <label class="cmd-label">Linux / Mac</label>
+                <label class="cmd-label">Linux / Mac / WSL</label>
                 <div class="cmd-box">IP=$(curl -s https://ipinfo.io/ip) && curl -u admin:password "http://localhost:5000/api/update?ip=$IP"
                     <div class="cmd-copy" onclick="copyCmdLinux(event)"></div>
                 </div>
@@ -458,6 +430,22 @@
                     <div class="cmd-copy" onclick="copyCmdWindows(event)"></div>
                 </div>
             </div>
+
+            <div class="cmd-group">
+                <label class="cmd-label">Windows CMD / Bash / Universal</label>
+                <div class="cmd-box">curl -u admin:password http://localhost:5000/api/update
+                    <div class="cmd-copy" onclick="copyCmdSimple(event)"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-update" onclick="updateNow()">Actualizar</button>
+            <button class="btn-refresh" onclick="location.reload()">Refresh</button>
+        </div>
+
+        <div class="controls-danger">
+            <button class="btn-disconnect" onclick="disconnect()">❌ Desconectar</button>
         </div>
 
         <div class="footer">
@@ -491,7 +479,6 @@
                 
                 updateCountdown(data.nextResetIn);
                 
-                // Actualizar estado de sincronización
                 const syncText = document.getElementById('syncText');
                 if (data.isSynchronized) {
                     syncText.textContent = '✅ Sincronizado';
@@ -618,6 +605,13 @@
         function copyCmdWindows(e) {
             e.stopPropagation();
             const text = '$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl -u admin:password "http://localhost:5000/api/update?ip=$ip"';
+            navigator.clipboard.writeText(text);
+            showMessage('✅ Copiado al portapapeles', 'success');
+        }
+
+        function copyCmdSimple(e) {
+            e.stopPropagation();
+            const text = 'curl -u admin:password http://localhost:5000/api/update';
             navigator.clipboard.writeText(text);
             showMessage('✅ Copiado al portapapeles', 'success');
         }

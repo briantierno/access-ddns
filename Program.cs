@@ -164,9 +164,12 @@ app.MapGet("/api/status", async (HttpContext context) =>
 
         try
         {
-            using (var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(5)))
+            var dnsTask = Dns.GetHostEntryAsync(domainToCheck);
+            var delayTask = System.Threading.Tasks.Task.Delay(TimeSpan.FromSeconds(5));
+            
+            if (await System.Threading.Tasks.Task.WhenAny(dnsTask, delayTask) == dnsTask)
             {
-                var ipHostInfo = await Dns.GetHostEntryAsync(domainToCheck);
+                var ipHostInfo = await dnsTask;
                 if (ipHostInfo.AddressList.Length > 0)
                 {
                     dnsIp = ipHostInfo.AddressList[0].ToString();
@@ -174,10 +177,10 @@ app.MapGet("/api/status", async (HttpContext context) =>
                     Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] DNS: {dnsIp}, Sync: {isSynchronized}");
                 }
             }
-        }
-        catch (OperationCanceledException)
-        {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] DNS timeout (5s)");
+            else
+            {
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] DNS timeout (5s)");
+            }
         }
         catch (Exception dnsEx)
         {
