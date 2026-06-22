@@ -150,6 +150,28 @@
             font-family: 'Courier New', monospace;
             color: #e0e0e0;
             word-break: break-all;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dns-loader {
+            display: none;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255, 149, 0, 0.3);
+            border-top-color: #ff9500;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            flex-shrink: 0;
+        }
+
+        .dns-loader.show {
+            display: block;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         .countdown-box {
@@ -389,7 +411,10 @@
         <div class="status-grid">
             <div class="status-item dns">
                 <div class="status-label">IP en DNS</div>
-                <div class="status-value" id="dnsIp">Resolviendo...</div>
+                <div class="status-value">
+                    <div class="dns-loader" id="dnsLoader"></div>
+                    <span id="dnsIp">Resolviendo...</span>
+                </div>
             </div>
             <div class="status-item">
                 <div class="status-label">Última Actualización</div>
@@ -399,6 +424,15 @@
 
         <div class="countdown-box">
             Auto-reset en: <span id="countdown">Calculando...</span> • Estado: <span id="syncText">Sincronizando...</span>
+        </div>
+
+        <div class="controls">
+            <button class="btn-update" onclick="updateNow()">Actualizar</button>
+            <button class="btn-refresh" onclick="location.reload()">Refresh</button>
+        </div>
+
+        <div class="controls-danger">
+            <button class="btn-disconnect" onclick="disconnect()">❌ Desconectar</button>
         </div>
 
         <div id="credentialsSection" class="section" style="display: none;">
@@ -439,15 +473,6 @@
             </div>
         </div>
 
-        <div class="controls">
-            <button class="btn-update" onclick="updateNow()">Actualizar</button>
-            <button class="btn-refresh" onclick="location.reload()">Refresh</button>
-        </div>
-
-        <div class="controls-danger">
-            <button class="btn-disconnect" onclick="disconnect()">❌ Desconectar</button>
-        </div>
-
         <div class="footer">
             <p>Auto-actualización cada 3 segundos • Auto-reset cada 6 horas</p>
         </div>
@@ -480,20 +505,26 @@
                 updateCountdown(data.nextResetIn);
                 
                 const syncText = document.getElementById('syncText');
+                const dnsLoader = document.getElementById('dnsLoader');
+                
                 if (data.isSynchronized) {
                     syncText.textContent = '✅ Sincronizado';
                     syncText.style.color = '#4caf50';
+                    dnsLoader.classList.remove('show');
                 } else if (data.dnsIp === 'No resuelto') {
                     syncText.textContent = '⏳ Esperando DNS...';
                     syncText.style.color = '#ff9500';
+                    dnsLoader.classList.add('show');
                 } else {
-                    syncText.textContent = '⚠️ Desincronizado';
+                    syncText.textContent = '⚠️ Propagando...';
                     syncText.style.color = '#ff9500';
+                    dnsLoader.classList.add('show');
                 }
             } catch (e) {
                 console.error('Error loading status:', e);
                 document.getElementById('syncText').textContent = '❌ Error';
                 document.getElementById('syncText').style.color = '#f44336';
+                document.getElementById('dnsLoader').classList.remove('show');
             }
         }
 
