@@ -9,6 +9,9 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Escuchar en todas las interfaces (0.0.0.0) en lugar de solo localhost
+builder.WebHost.UseUrls("http://0.0.0.0:5000");
 var app = builder.Build();
 
 var defaultUser = "admin";
@@ -118,6 +121,7 @@ app.MapGet("/access", async (HttpContext context) =>
         return;
     }
 
+    context.Response.ContentType = "text/html; charset=utf-8";
     context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
     context.Response.Headers["Pragma"] = "no-cache";
     context.Response.Headers["Expires"] = "0";
