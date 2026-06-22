@@ -578,11 +578,15 @@
 
         async function loadStatus() {
             try {
+                // Obtener IP pública del cliente (navegador)
+                const clientIpResponse = await fetch('https://ipinfo.io/ip');
+                const clientIp = await clientIpResponse.text().then(ip => ip.trim());
+                
                 const timestamp = new Date().getTime();
                 const response = await fetch(`/api/status?t=${timestamp}`);
                 const data = await response.json();
                 
-                document.getElementById('currentIp').textContent = data.currentIp || 'Error';
+                document.getElementById('currentIp').textContent = clientIp || 'Error';
                 document.getElementById('dnsIp').textContent = data.dnsIp || 'No resuelto';
                 document.getElementById('lastUpdate').textContent = data.lastUpdated || '-';
                 
@@ -590,11 +594,10 @@
                 
                 const syncText = document.getElementById('syncText');
                 const dnsLoader = document.getElementById('dnsLoader');
-                const currentIp = data.currentIp || '';
                 const dnsIp = data.dnsIp || '';
                 
                 if (wasJustDisconnected) {
-                    if (currentIp !== dnsIp) {
+                    if (clientIp !== dnsIp) {
                         // Desconexión exitosa - ya no coinciden
                         syncText.textContent = '⚠️ Desincronizado';
                         syncText.style.color = '#ff9500';
@@ -607,7 +610,7 @@
                         dnsLoader.classList.add('show');
                     }
                 } else if (wasJustUpdated) {
-                    if (currentIp === dnsIp && currentIp !== 'No resuelto' && currentIp !== 'Error') {
+                    if (clientIp === dnsIp && clientIp !== 'No resuelto' && clientIp !== 'Error') {
                         syncText.textContent = '✅ Sincronizado';
                         syncText.style.color = '#4caf50';
                         dnsLoader.classList.remove('show');
@@ -618,7 +621,7 @@
                         dnsLoader.classList.add('show');
                     }
                 } else {
-                    if (currentIp === dnsIp && currentIp !== 'No resuelto' && currentIp !== 'Error') {
+                    if (clientIp === dnsIp && clientIp !== 'No resuelto' && clientIp !== 'Error') {
                         syncText.textContent = '✅ Sincronizado';
                         syncText.style.color = '#4caf50';
                         dnsLoader.classList.remove('show');
