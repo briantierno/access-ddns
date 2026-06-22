@@ -135,7 +135,7 @@ app.MapGet("/api/config", async (HttpContext context) =>
 
     context.Response.ContentType = "application/json";
     context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
-    await context.Response.WriteAsJsonAsync(new { isDefault = IsDefaultCredentials() });
+    await context.Response.WriteAsJsonAsync(new { isDefault = IsDefaultCredentials(), user = currentUser });
 });
 
 app.MapGet("/api/status", async (HttpContext context) =>

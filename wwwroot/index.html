@@ -131,6 +131,7 @@
             padding: 12px;
             border-radius: 8px;
             border-left: 3px solid #9c27b0;
+            position: relative;
         }
 
         .status-item.dns {
@@ -150,20 +151,19 @@
             font-family: 'Courier New', monospace;
             color: #e0e0e0;
             word-break: break-all;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
         .dns-loader {
             display: none;
-            width: 12px;
-            height: 12px;
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 14px;
+            height: 14px;
             border: 2px solid rgba(255, 149, 0, 0.3);
             border-top-color: #ff9500;
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
-            flex-shrink: 0;
         }
 
         .dns-loader.show {
@@ -329,6 +329,14 @@
             font-size: 9px;
         }
 
+        .cmd-variant {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+            padding-top: 4px;
+            border-top: 1px solid rgba(255, 149, 0, 0.2);
+        }
+
         .form-group {
             margin-bottom: 12px;
         }
@@ -410,11 +418,9 @@
 
         <div class="status-grid">
             <div class="status-item dns">
+                <div class="dns-loader" id="dnsLoader"></div>
                 <div class="status-label">IP en DNS</div>
-                <div class="status-value">
-                    <div class="dns-loader" id="dnsLoader"></div>
-                    <span id="dnsIp">Resolviendo...</span>
-                </div>
+                <div class="status-value" id="dnsIp">Resolviendo...</div>
             </div>
             <div class="status-item">
                 <div class="status-label">Última Actualización</div>
@@ -452,23 +458,38 @@
             <h3>📡 Consola</h3>
 
             <div class="cmd-group">
-                <label class="cmd-label">Linux / Mac / WSL</label>
-                <div class="cmd-box">IP=$(curl -s https://ipinfo.io/ip) && curl -u admin:password "http://localhost:5000/api/update?ip=$IP"
-                    <div class="cmd-copy" onclick="copyCmdLinux(event)"></div>
+                <label class="cmd-label">Linux / Mac / WSL (con -u)</label>
+                <div class="cmd-box">IP=$(curl -s https://ipinfo.io/ip) && curl -u <span id="cmdUser">admin</span>:<span id="cmdPass">password</span> "http://localhost:5000/api/update?ip=$IP"
+                    <div class="cmd-copy" onclick="copyCmdLinuxAuth(event)"></div>
+                </div>
+                <div class="cmd-variant">O directamente (credenciales en URL):
+                    <div class="cmd-box" style="margin-top: 6px; padding-right: 40px;">IP=$(curl -s https://ipinfo.io/ip) && curl "http://localhost:5000/api/update?ip=$IP&user=<span id="cmdUserUrl">admin</span>&pass=<span id="cmdPassUrl">password</span>"
+                    <div class="cmd-copy" onclick="copyCmdLinuxUrl(event)"></div>
+                </div>
                 </div>
             </div>
 
             <div class="cmd-group">
-                <label class="cmd-label">Windows PowerShell</label>
-                <div class="cmd-box">$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl -u admin:password "http://localhost:5000/api/update?ip=$ip"
-                    <div class="cmd-copy" onclick="copyCmdWindows(event)"></div>
+                <label class="cmd-label">Windows PowerShell (con -u)</label>
+                <div class="cmd-box">$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl -u <span id="cmdUserPs">admin</span>:<span id="cmdPassPs">password</span> "http://localhost:5000/api/update?ip=$ip"
+                    <div class="cmd-copy" onclick="copyCmdWindowsAuth(event)"></div>
+                </div>
+                <div class="cmd-variant">O directamente (credenciales en URL):
+                    <div class="cmd-box" style="margin-top: 6px; padding-right: 40px;">$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl "http://localhost:5000/api/update?ip=$ip&user=<span id="cmdUserPsUrl">admin</span>&pass=<span id="cmdPassPsUrl">password</span>"
+                    <div class="cmd-copy" onclick="copyCmdWindowsUrl(event)"></div>
+                </div>
                 </div>
             </div>
 
             <div class="cmd-group">
-                <label class="cmd-label">Windows CMD / Bash / Universal</label>
-                <div class="cmd-box">curl -u admin:password http://localhost:5000/api/update
-                    <div class="cmd-copy" onclick="copyCmdSimple(event)"></div>
+                <label class="cmd-label">Windows CMD / Bash / Universal (con -u)</label>
+                <div class="cmd-box">curl -u <span id="cmdUserSimple">admin</span>:<span id="cmdPassSimple">password</span> http://localhost:5000/api/update
+                    <div class="cmd-copy" onclick="copyCmdSimpleAuth(event)"></div>
+                </div>
+                <div class="cmd-variant">O directamente (credenciales en URL):
+                    <div class="cmd-box" style="margin-top: 6px; padding-right: 40px;">curl "http://localhost:5000/api/update?user=<span id="cmdUserSimpleUrl">admin</span>&pass=<span id="cmdPassSimpleUrl">password</span>"
+                    <div class="cmd-copy" onclick="copyCmdSimpleUrl(event)"></div>
+                </div>
                 </div>
             </div>
         </div>
@@ -479,6 +500,10 @@
     </div>
 
     <script>
+        let currentUser = 'admin';
+        let lastPublicIp = '';
+        let wasJustUpdated = false;
+
         async function checkDefaults() {
             try {
                 const response = await fetch('/api/config');
@@ -487,9 +512,31 @@
                     document.getElementById('warningBox').classList.add('show');
                     document.getElementById('credentialsSection').style.display = 'block';
                 }
+                currentUser = data.user || 'admin';
+                updateCredentialsDisplay();
             } catch (e) {
                 console.error('Error checking config:', e);
             }
+        }
+
+        function updateCredentialsDisplay() {
+            const user = currentUser;
+            const pass = '••••••••';
+            
+            document.getElementById('cmdUser').textContent = user;
+            document.getElementById('cmdPass').textContent = pass;
+            document.getElementById('cmdUserUrl').textContent = user;
+            document.getElementById('cmdPassUrl').textContent = pass;
+            
+            document.getElementById('cmdUserPs').textContent = user;
+            document.getElementById('cmdPassPs').textContent = pass;
+            document.getElementById('cmdUserPsUrl').textContent = user;
+            document.getElementById('cmdPassPsUrl').textContent = pass;
+            
+            document.getElementById('cmdUserSimple').textContent = user;
+            document.getElementById('cmdPassSimple').textContent = pass;
+            document.getElementById('cmdUserSimpleUrl').textContent = user;
+            document.getElementById('cmdPassSimpleUrl').textContent = pass;
         }
 
         async function loadStatus() {
@@ -506,19 +553,41 @@
                 
                 const syncText = document.getElementById('syncText');
                 const dnsLoader = document.getElementById('dnsLoader');
+                const currentIp = data.currentIp || '';
+                const dnsIp = data.dnsIp || '';
                 
-                if (data.isSynchronized) {
-                    syncText.textContent = '✅ Sincronizado';
-                    syncText.style.color = '#4caf50';
-                    dnsLoader.classList.remove('show');
-                } else if (data.dnsIp === 'No resuelto') {
-                    syncText.textContent = '⏳ Esperando DNS...';
-                    syncText.style.color = '#ff9500';
-                    dnsLoader.classList.add('show');
+                // Si fue actualizada recientemente, mostrar loader y propagando
+                if (wasJustUpdated) {
+                    if (currentIp === dnsIp && currentIp !== 'No resuelto') {
+                        // Sincronizado
+                        syncText.textContent = '✅ Sincronizado';
+                        syncText.style.color = '#4caf50';
+                        dnsLoader.classList.remove('show');
+                        wasJustUpdated = false;
+                    } else if (dnsIp === 'No resuelto' || currentIp !== dnsIp) {
+                        // Aún propagando
+                        syncText.textContent = '⏳ Propagando...';
+                        syncText.style.color = '#ff9500';
+                        dnsLoader.classList.add('show');
+                    }
                 } else {
-                    syncText.textContent = '⚠️ Propagando...';
-                    syncText.style.color = '#ff9500';
-                    dnsLoader.classList.add('show');
+                    // Cuando no hay actualización reciente
+                    if (currentIp === dnsIp && currentIp !== 'No resuelto') {
+                        // Sincronizado
+                        syncText.textContent = '✅ Sincronizado';
+                        syncText.style.color = '#4caf50';
+                        dnsLoader.classList.remove('show');
+                    } else if (dnsIp === 'No resuelto') {
+                        // No resuelto
+                        syncText.textContent = '⏳ Esperando DNS...';
+                        syncText.style.color = '#ff9500';
+                        dnsLoader.classList.add('show');
+                    } else {
+                        // Desincronizado
+                        syncText.textContent = '⚠️ Desincronizado';
+                        syncText.style.color = '#ff9500';
+                        dnsLoader.classList.remove('show');
+                    }
                 }
             } catch (e) {
                 console.error('Error loading status:', e);
@@ -539,23 +608,27 @@
             const btn = event.target;
             btn.disabled = true;
             btn.textContent = 'Actualizando...';
+            wasJustUpdated = true;
 
             try {
                 const ipResponse = await fetch('https://ipinfo.io/ip');
                 const ip = await ipResponse.text();
+                lastPublicIp = ip.trim();
 
-                const response = await fetch('/api/update?ip=' + ip.trim(), { method: 'POST' });
+                const response = await fetch('/api/update?ip=' + lastPublicIp, { method: 'POST' });
                 const data = await response.json();
 
                 if (response.ok) {
                     showMessage('✅ IP actualizada', 'success');
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise(resolve => setTimeout(resolve, 500));
                     loadStatus();
                 } else {
                     showMessage('❌ Error: ' + (data.error || 'Desconocido'), 'error');
+                    wasJustUpdated = false;
                 }
             } catch (e) {
                 showMessage('❌ Error: ' + e.message, 'error');
+                wasJustUpdated = false;
             } finally {
                 btn.disabled = false;
                 btn.textContent = 'Actualizar';
@@ -607,6 +680,8 @@
 
                 if (response.ok) {
                     showMessage('✅ Credenciales guardadas', 'success');
+                    currentUser = user;
+                    updateCredentialsDisplay();
                     document.getElementById('warningBox').classList.remove('show');
                     document.getElementById('credentialsSection').style.display = 'none';
                 } else {
@@ -626,23 +701,44 @@
             }, 4000);
         }
 
-        function copyCmdLinux(e) {
+        function copyCmdLinuxAuth(e) {
             e.stopPropagation();
-            const text = 'IP=$(curl -s https://ipinfo.io/ip) && curl -u admin:password "http://localhost:5000/api/update?ip=$IP"';
+            const text = 'IP=$(curl -s https://ipinfo.io/ip) && curl -u ' + currentUser + ':password "http://localhost:5000/api/update?ip=$IP"';
             navigator.clipboard.writeText(text);
             showMessage('✅ Copiado al portapapeles', 'success');
         }
 
-        function copyCmdWindows(e) {
+        function copyCmdLinuxUrl(e) {
             e.stopPropagation();
-            const text = '$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl -u admin:password "http://localhost:5000/api/update?ip=$ip"';
+            const text = 'IP=$(curl -s https://ipinfo.io/ip) && curl "http://localhost:5000/api/update?ip=$IP&user=' + currentUser + '&pass=password"';
             navigator.clipboard.writeText(text);
             showMessage('✅ Copiado al portapapeles', 'success');
         }
 
-        function copyCmdSimple(e) {
+        function copyCmdWindowsAuth(e) {
             e.stopPropagation();
-            const text = 'curl -u admin:password http://localhost:5000/api/update';
+            const text = '$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl -u ' + currentUser + ':password "http://localhost:5000/api/update?ip=$ip"';
+            navigator.clipboard.writeText(text);
+            showMessage('✅ Copiado al portapapeles', 'success');
+        }
+
+        function copyCmdWindowsUrl(e) {
+            e.stopPropagation();
+            const text = '$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl "http://localhost:5000/api/update?ip=$ip&user=' + currentUser + '&pass=password"';
+            navigator.clipboard.writeText(text);
+            showMessage('✅ Copiado al portapapeles', 'success');
+        }
+
+        function copyCmdSimpleAuth(e) {
+            e.stopPropagation();
+            const text = 'curl -u ' + currentUser + ':password http://localhost:5000/api/update';
+            navigator.clipboard.writeText(text);
+            showMessage('✅ Copiado al portapapeles', 'success');
+        }
+
+        function copyCmdSimpleUrl(e) {
+            e.stopPropagation();
+            const text = 'curl "http://localhost:5000/api/update?user=' + currentUser + '&pass=password"';
             navigator.clipboard.writeText(text);
             showMessage('✅ Copiado al portapapeles', 'success');
         }
