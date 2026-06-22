@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Web;
@@ -14,27 +15,69 @@ var adminUser = Environment.GetEnvironmentVariable("ADMIN_USER") ?? "admin";
 var adminPassMd5 = Environment.GetEnvironmentVariable("ADMIN_PASS_MD5") ?? "5f4dcc3b5aa765d61d8327deb882cf99";
 var cdmonEndpoint = "https://dinamico.cdmon.org/onlineService.php";
 var cdmonParams = "enctype=MD5&n=dmzaccess&p=e8a2d6bc68ffc4c0775435fbfc3cbadb";
+var domainToCheck = "access.dmz.ar";
 
 app.UseStaticFiles();
 
-// GET /access - Retorna HTML
+// GET /access - Retorna HTML con anti-caché
 app.MapGet("/access", async (HttpContext context) =>
 {
+    context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
+    context.Response.Headers.Add("Pragma", "no-cache");
+    context.Response.Headers.Add("Expires", "0");
     await context.Response.SendFileAsync("./wwwroot/index.html");
 });
 
-// GET /api/status - Retorna status actual
+// GET /api/status - Retorna status actual con resolución DNS
 app.MapGet("/api/status", async (HttpContext context) =>
 {
     try
     {
+        context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
+        context.Response.Headers.Add("Pragma", "no-cache");
+        context.Response.Headers.Add("Expires", "0");
+
         using var client = new HttpClient();
+        client.Timeout = TimeSpan.FromSeconds(10);
+
+        // Obtener IP pública actual
         var publicIp = await client.GetStringAsync("https://ipinfo.io/ip");
         publicIp = publicIp.Trim();
+
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] IP Pública obtenida: {publicIp}");
+
+        // Resolver DNS del dominio
+        string dnsIp = "No resuelto";
+        bool isSynchronized = false;
+
+        try
+        {
+            var ipHostInfo = Dns.GetHostEntry(domainToCheck);
+            if (ipHostInfo.AddressList.Length > 0)
+            {
+                dnsIp = ipHostInfo.AddressList[0].ToString();
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] DNS resuelto: {domainToCheck} -> {dnsIp}");
+
+                // Comparar IPs
+                isSynchronized = (publicIp == dnsIp);
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ¿Sincronizado? {isSynchronized} (Público: {publicIp}, DNS: {dnsIp})");
+            }
+            else
+            {
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Error: DNS no devolvió direcciones para {domainToCheck}");
+            }
+        }
+        catch (Exception dnsEx)
+        {
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Error resolviendo DNS: {dnsEx.Message}");
+        }
 
         var result = new
         {
             currentIp = publicIp,
+            dnsIp = dnsIp,
+            domain = domainToCheck,
+            isSynchronized = isSynchronized,
             lastUpdated = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
             status = "ok"
         };
@@ -44,8 +87,10 @@ app.MapGet("/api/status", async (HttpContext context) =>
     }
     catch (Exception ex)
     {
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Error en /api/status: {ex.Message}");
         context.Response.StatusCode = 500;
         context.Response.ContentType = "application/json";
+        context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
         await context.Response.WriteAsJsonAsync(new { error = ex.Message });
     }
 });
@@ -80,10 +125,13 @@ app.MapPost("/api/update", async (HttpContext context) =>
             ip = (await client.GetStringAsync("https://ipinfo.io/ip")).Trim();
         }
 
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Update request: user={user}, ip={ip}");
+
         // Validar credenciales
         var passHash = GetMd5Hash(pass);
         if (user != adminUser || passHash != adminPassMd5)
         {
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Auth fallida: {user}");
             context.Response.StatusCode = 401;
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsJsonAsync(new { error = "Invalid credentials" });
@@ -93,9 +141,13 @@ app.MapPost("/api/update", async (HttpContext context) =>
         // Llamar CDmon
         using var cdmonClient = new HttpClient();
         var cdmonUrl = $"{cdmonEndpoint}?{cdmonParams}&cip={ip}";
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Llamando CDmon: {ip}");
         var cdmonResponse = await cdmonClient.GetStringAsync(cdmonUrl);
 
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Respuesta CDmon: {cdmonResponse.Trim()}");
+
         context.Response.ContentType = "application/json";
+        context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
         await context.Response.WriteAsJsonAsync(new
         {
             success = true,
@@ -105,8 +157,10 @@ app.MapPost("/api/update", async (HttpContext context) =>
     }
     catch (Exception ex)
     {
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Error en /api/update: {ex.Message}");
         context.Response.StatusCode = 500;
         context.Response.ContentType = "application/json";
+        context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
         await context.Response.WriteAsJsonAsync(new { error = ex.Message });
     }
 });
@@ -141,10 +195,13 @@ app.MapGet("/api/update", async (HttpContext context) =>
             ip = (await client.GetStringAsync("https://ipinfo.io/ip")).Trim();
         }
 
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Update request (GET): user={user}, ip={ip}");
+
         // Validar credenciales
         var passHash = GetMd5Hash(pass);
         if (user != adminUser || passHash != adminPassMd5)
         {
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Auth fallida: {user}");
             context.Response.StatusCode = 401;
             context.Response.ContentType = "application/json";
             await context.Response.WriteAsJsonAsync(new { error = "Invalid credentials" });
@@ -154,9 +211,13 @@ app.MapGet("/api/update", async (HttpContext context) =>
         // Llamar CDmon
         using var cdmonClient = new HttpClient();
         var cdmonUrl = $"{cdmonEndpoint}?{cdmonParams}&cip={ip}";
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Llamando CDmon: {ip}");
         var cdmonResponse = await cdmonClient.GetStringAsync(cdmonUrl);
 
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Respuesta CDmon: {cdmonResponse.Trim()}");
+
         context.Response.ContentType = "application/json";
+        context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
         await context.Response.WriteAsJsonAsync(new
         {
             success = true,
@@ -166,8 +227,10 @@ app.MapGet("/api/update", async (HttpContext context) =>
     }
     catch (Exception ex)
     {
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Error en /api/update (GET): {ex.Message}");
         context.Response.StatusCode = 500;
         context.Response.ContentType = "application/json";
+        context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
         await context.Response.WriteAsJsonAsync(new { error = ex.Message });
     }
 });

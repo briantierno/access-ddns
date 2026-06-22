@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Access DDNS</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <style>
         * {
             margin: 0;
@@ -354,7 +357,7 @@
         <div class="status-grid">
             <div class="status-item dns">
                 <div class="status-label">IP en DNS</div>
-                <div class="status-value" id="dnsIp">access.dmz.ar</div>
+                <div class="status-value" id="dnsIp">Resolviendo...</div>
             </div>
             <div class="status-item">
                 <div class="status-label">Última actualización</div>
@@ -404,34 +407,42 @@
         </div>
 
         <div class="footer">
-            <p>Auto-actualización cada 5 segundos • access.dmz.ar</p>
+            <p>Auto-actualización cada 3 segundos • access.dmz.ar</p>
         </div>
     </div>
 
     <script>
         async function loadStatus() {
             try {
-                const response = await fetch('/api/status');
+                const timestamp = new Date().getTime();
+                const response = await fetch(`/api/status?t=${timestamp}`);
                 const data = await response.json();
                 
                 document.getElementById('currentIp').textContent = data.currentIp || 'Error';
+                document.getElementById('dnsIp').textContent = data.dnsIp || 'No resuelto';
                 document.getElementById('lastUpdate').textContent = data.lastUpdated || '-';
                 
-                // Simulación: en producción, resolvería access.dmz.ar
-                checkDnsSync(data.currentIp);
+                // Actualizar estado de sincronización
+                const indicator = document.getElementById('syncIndicator');
+                const text = document.getElementById('syncText');
+                
+                if (data.isSynchronized) {
+                    indicator.className = 'status-indicator';
+                    text.textContent = '✅ Sincronizado correctamente';
+                } else if (data.dnsIp === 'No resuelto') {
+                    indicator.className = 'status-indicator pending';
+                    text.textContent = '⏳ Esperando resolución DNS...';
+                } else {
+                    indicator.className = 'status-indicator pending';
+                    text.textContent = `⚠️ Desincronizado (IP: ${data.dnsIp})`;
+                }
             } catch (e) {
                 console.error('Error loading status:', e);
                 document.getElementById('currentIp').textContent = 'Error';
+                const indicator = document.getElementById('syncIndicator');
+                indicator.className = 'status-indicator error';
+                document.getElementById('syncText').textContent = '❌ Error cargando datos';
             }
-        }
-
-        function checkDnsSync(currentIp) {
-            // Simulación: asumir que está sincronizado si obtuvimos IP
-            const indicator = document.getElementById('syncIndicator');
-            const text = document.getElementById('syncText');
-            
-            indicator.className = 'status-indicator';
-            text.textContent = '✅ Sincronizado correctamente';
         }
 
         async function updateNow() {
@@ -448,6 +459,7 @@
 
                 if (response.ok) {
                     showMessage('✅ IP actualizada correctamente', 'success');
+                    await new Promise(resolve => setTimeout(resolve, 2000));
                     loadStatus();
                 } else {
                     showMessage('❌ Error: ' + (data.error || 'Desconocido'), 'error');
@@ -480,8 +492,8 @@
         // Cargar status inicialmente
         loadStatus();
 
-        // Auto-refresh cada 5 segundos
-        setInterval(loadStatus, 5000);
+        // Auto-refresh cada 3 segundos (sin caché)
+        setInterval(loadStatus, 3000);
     </script>
 </body>
 </html>
