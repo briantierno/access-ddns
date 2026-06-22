@@ -19,11 +19,9 @@ var cdmonParams = "enctype=MD5&n=dmzaccess&p=e8a2d6bc68ffc4c0775435fbfc3cbadb";
 var domainToCheck = "access.dmz.ar";
 var autoResetHours = 6;
 
-// Credenciales actuales
 string currentUser = defaultUser;
 string currentPassMd5 = defaultPassMd5;
 
-// Cargar credenciales guardadas
 void LoadCredentials()
 {
     try
@@ -43,7 +41,6 @@ void LoadCredentials()
     }
 }
 
-// Guardar credenciales
 void SaveCredentials(string user, string passMd5)
 {
     try
@@ -60,13 +57,11 @@ void SaveCredentials(string user, string passMd5)
     }
 }
 
-// Verificar si están en defaults
 bool IsDefaultCredentials()
 {
     return currentUser == defaultUser && currentPassMd5 == defaultPassMd5;
 }
 
-// Validar Basic Auth
 bool ValidateAuth(HttpContext context, out string user)
 {
     user = "";
@@ -112,7 +107,6 @@ LoadCredentials();
 
 app.UseStaticFiles();
 
-// GET /access
 app.MapGet("/access", async (HttpContext context) =>
 {
     if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
@@ -129,7 +123,6 @@ app.MapGet("/access", async (HttpContext context) =>
     await context.Response.SendFileAsync("./wwwroot/index.html");
 });
 
-// GET /api/config
 app.MapGet("/api/config", async (HttpContext context) =>
 {
     if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
@@ -144,7 +137,6 @@ app.MapGet("/api/config", async (HttpContext context) =>
     await context.Response.WriteAsJsonAsync(new { isDefault = IsDefaultCredentials() });
 });
 
-// GET /api/status
 app.MapGet("/api/status", async (HttpContext context) =>
 {
     if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
@@ -212,7 +204,6 @@ app.MapGet("/api/status", async (HttpContext context) =>
     }
 });
 
-// POST /api/update
 app.MapPost("/api/update", async (HttpContext context) =>
 {
     if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
@@ -258,7 +249,6 @@ app.MapPost("/api/update", async (HttpContext context) =>
     }
 });
 
-// GET /api/update
 app.MapGet("/api/update", async (HttpContext context) =>
 {
     if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
@@ -304,7 +294,6 @@ app.MapGet("/api/update", async (HttpContext context) =>
     }
 });
 
-// POST /api/disconnect
 app.MapPost("/api/disconnect", async (HttpContext context) =>
 {
     if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
@@ -343,7 +332,6 @@ app.MapPost("/api/disconnect", async (HttpContext context) =>
     }
 });
 
-// GET /api/disconnect
 app.MapGet("/api/disconnect", async (HttpContext context) =>
 {
     if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
@@ -382,7 +370,6 @@ app.MapGet("/api/disconnect", async (HttpContext context) =>
     }
 });
 
-// POST /api/credentials - Cambiar credenciales
 app.MapPost("/api/credentials", async (HttpContext context) =>
 {
     if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
@@ -394,7 +381,9 @@ app.MapPost("/api/credentials", async (HttpContext context) =>
 
     try
     {
-        var body = await context.Request.ReadAsStringAsync();
+        context.Request.EnableBuffering();
+        using var reader = new StreamReader(context.Request.Body);
+        var body = await reader.ReadToEndAsync();
         using var doc = JsonDocument.Parse(body);
         var root = doc.RootElement;
 
