@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Access DDNS</title>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -12,13 +12,6 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        html, body {
-            width: 100%;
-            height: 100%;
-            overflow-x: hidden;
         }
 
         body {
@@ -29,16 +22,16 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 16px;
+            padding: 20px;
         }
 
         .container {
             width: 100%;
             max-width: 700px;
-            background: rgba(30, 30, 30, 0.95);
+            background: rgba(20, 20, 20, 0.98);
             border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7);
             border: 1px solid rgba(255, 149, 0, 0.2);
         }
 
@@ -48,144 +41,27 @@
         }
 
         .header h1 {
-            font-size: clamp(24px, 6vw, 28px);
+            font-size: 32px;
             margin-bottom: 8px;
             background: linear-gradient(135deg, #ff9500 0%, #9c27b0 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            letter-spacing: 2px;
         }
 
         .header p {
             color: #999;
-            font-size: clamp(12px, 3vw, 13px);
-        }
-
-        .warning-box {
-            background: rgba(255, 193, 7, 0.1);
-            border: 1px solid rgba(255, 193, 7, 0.5);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 20px;
             font-size: 13px;
-            color: #ffc107;
-            display: none;
-        }
-
-        .warning-box.show {
-            display: block;
-        }
-
-        .ip-section {
-            background: rgba(255, 149, 0, 0.1);
-            border: 2px solid #ff9500;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .ip-label {
-            font-size: 11px;
-            color: #999;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-        }
-
-        .ip-display {
-            font-size: clamp(32px, 8vw, 48px);
-            font-weight: bold;
-            font-family: 'Courier New', monospace;
-            color: #ff9500;
-            word-break: break-all;
-            line-height: 1.2;
-        }
-
-        .status-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .status-item {
-            background: rgba(45, 45, 45, 0.8);
-            padding: 12px;
-            border-radius: 8px;
-            border-left: 3px solid #9c27b0;
-        }
-
-        .status-item.dns {
-            border-left-color: #ff9500;
-        }
-
-        .status-label {
-            font-size: 10px;
-            color: #999;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-        }
-
-        .status-value {
-            font-size: 13px;
-            font-family: 'Courier New', monospace;
-            color: #e0e0e0;
-            word-break: break-all;
-        }
-
-        .status-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #4caf50;
-            margin-right: 8px;
-        }
-
-        .status-indicator.pending {
-            background: #ff9500;
-            animation: blink 1.5s infinite;
-        }
-
-        .status-indicator.error {
-            background: #f44336;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .countdown-box {
-            background: rgba(156, 39, 176, 0.1);
-            border: 1px solid rgba(156, 39, 176, 0.5);
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-size: 12px;
-        }
-
-        .countdown-box span {
-            font-weight: bold;
-            color: #9c27b0;
-            font-family: 'Courier New', monospace;
-        }
-
-        .sync-status {
-            font-size: 12px;
-            text-align: center;
-            color: #999;
-            margin-bottom: 15px;
         }
 
         .message {
-            padding: 10px 12px;
+            padding: 12px;
             border-radius: 6px;
             margin-bottom: 15px;
             font-size: 12px;
             display: none;
+            text-align: center;
         }
 
         .message.success {
@@ -202,6 +78,115 @@
             display: block;
         }
 
+        .warning-box {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.5);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 12px;
+            color: #ffc107;
+            display: none;
+        }
+
+        .warning-box.show {
+            display: block;
+        }
+
+        .ip-section {
+            background: rgba(255, 149, 0, 0.1);
+            border: 2px solid #ff9500;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .ip-label {
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+
+        .ip-display {
+            font-size: 48px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            color: #ff9500;
+            word-break: break-all;
+            line-height: 1.3;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .status-item {
+            background: rgba(40, 40, 40, 0.9);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid #9c27b0;
+        }
+
+        .status-item.dns {
+            border-left-color: #ff9500;
+        }
+
+        .status-label {
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            letter-spacing: 1px;
+        }
+
+        .status-value {
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            color: #e0e0e0;
+            word-break: break-all;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4caf50;
+            margin-right: 6px;
+        }
+
+        .status-indicator.pending {
+            background: #ff9500;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .countdown-box {
+            background: rgba(156, 39, 176, 0.1);
+            border: 1px solid rgba(156, 39, 176, 0.5);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .countdown-box span {
+            font-weight: bold;
+            color: #9c27b0;
+            font-family: 'Courier New', monospace;
+        }
+
         .controls {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -209,12 +194,8 @@
             margin-bottom: 15px;
         }
 
-        .controls-danger {
-            margin-bottom: 20px;
-        }
-
         button {
-            padding: 11px 16px;
+            padding: 12px 16px;
             border: none;
             border-radius: 6px;
             font-size: 13px;
@@ -225,13 +206,22 @@
             letter-spacing: 0.5px;
         }
 
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         .btn-update {
             background: linear-gradient(135deg, #ff9500 0%, #ff7500 100%);
             color: white;
         }
 
-        .btn-update:active {
-            transform: scale(0.95);
+        .btn-update:hover:not(:disabled) {
+            box-shadow: 0 5px 15px rgba(255, 149, 0, 0.4);
         }
 
         .btn-refresh {
@@ -239,77 +229,36 @@
             color: white;
         }
 
-        .btn-refresh:active {
-            transform: scale(0.95);
+        .btn-refresh:hover:not(:disabled) {
+            box-shadow: 0 5px 15px rgba(156, 39, 176, 0.4);
+        }
+
+        .controls-danger {
+            margin-bottom: 20px;
         }
 
         .btn-disconnect {
+            width: 100%;
             background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
             color: white;
-            grid-column: 1 / -1;
-            width: 100%;
         }
 
-        .btn-disconnect:active {
-            transform: scale(0.95);
-        }
-
-        .btn-update:disabled,
-        .btn-refresh:disabled,
-        .btn-disconnect:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .btn-disconnect:hover:not(:disabled) {
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
         }
 
         .section {
-            background: rgba(45, 45, 45, 0.8);
-            border: 1px solid rgba(156, 39, 176, 0.3);
-            border-radius: 8px;
+            margin-top: 25px;
             padding: 15px;
-            margin-bottom: 15px;
+            background: rgba(30, 30, 30, 0.8);
+            border-radius: 8px;
+            border-left: 3px solid #9c27b0;
         }
 
         .section h3 {
-            font-size: 13px;
-            color: #9c27b0;
+            font-size: 14px;
             margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .form-group {
-            margin-bottom: 10px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 11px;
-            color: #999;
-            text-transform: uppercase;
-            margin-bottom: 5px;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 9px 12px;
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 149, 0, 0.3);
-            border-radius: 4px;
             color: #e0e0e0;
-            font-size: 13px;
-            font-family: 'Courier New', monospace;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: #ff9500;
-        }
-
-        .btn-save {
-            width: 100%;
-            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
-            color: white;
-            margin-top: 10px;
         }
 
         .cmd-group {
@@ -317,84 +266,110 @@
         }
 
         .cmd-label {
-            font-size: 10px;
-            color: #999;
+            font-size: 11px;
+            color: #888;
             text-transform: uppercase;
-            margin-bottom: 5px;
             display: block;
+            margin-bottom: 6px;
         }
 
         .cmd-box {
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 149, 0, 0.2);
-            border-radius: 4px;
-            padding: 10px 12px;
-            font-family: 'Courier New', monospace;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 149, 0, 0.3);
+            border-radius: 6px;
+            padding: 10px;
             font-size: 11px;
+            font-family: 'Courier New', monospace;
             color: #ff9500;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            position: relative;
             word-break: break-all;
+            line-height: 1.4;
+            position: relative;
+            padding-right: 35px;
         }
 
         .cmd-copy {
             position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
             background: rgba(255, 149, 0, 0.2);
-            border: 1px solid rgba(255, 149, 0, 0.5);
+            border: 1px solid #ff9500;
             border-radius: 4px;
-            width: 28px;
-            height: 28px;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
             font-size: 12px;
+            transition: all 0.2s;
         }
 
-        .cmd-copy:active {
-            background: rgba(76, 175, 80, 0.3);
-            border-color: #4caf50;
+        .cmd-copy:hover {
+            background: rgba(255, 149, 0, 0.4);
+            transform: scale(1.1);
         }
 
-        .cmd-copy::before {
+        .cmd-copy::after {
             content: '📋';
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 4px;
+            color: #888;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 149, 0, 0.3);
+            border-radius: 4px;
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #ff9500;
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .btn-save {
+            width: 100%;
+            background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+            color: white;
         }
 
         .footer {
             text-align: center;
             margin-top: 20px;
-            padding-top: 15px;
-            border-top: 1px solid rgba(255, 149, 0, 0.1);
             font-size: 11px;
             color: #666;
         }
 
         @media (max-width: 480px) {
             .container {
-                padding: 16px;
+                padding: 20px;
                 border-radius: 8px;
             }
 
             .header h1 {
-                font-size: 22px;
+                font-size: 24px;
             }
 
-            .status-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .controls {
-                gap: 8px;
+            .ip-display {
+                font-size: 36px;
             }
 
             button {
+                padding: 10px 12px;
                 font-size: 12px;
-                padding: 10px 14px;
             }
         }
     </style>
@@ -409,17 +384,12 @@
         <div id="message" class="message"></div>
 
         <div id="warningBox" class="warning-box">
-            ⚠️ <strong>Credenciales por defecto detectadas.</strong> Por seguridad, cambialas lo antes posible en "Configuración".
+            ⚠️ Usando credenciales por defecto. Por favor, cámbielas por seguridad.
         </div>
 
         <div class="ip-section">
-            <div class="ip-label">Tu IP pública actual</div>
+            <div class="ip-label">Tu IP Pública Actual</div>
             <div class="ip-display" id="currentIp">Cargando...</div>
-        </div>
-
-        <div class="sync-status">
-            <span class="status-indicator" id="syncIndicator"></span>
-            <span id="syncText">Cargando estado...</span>
         </div>
 
         <div class="status-grid">
@@ -428,7 +398,7 @@
                 <div class="status-value" id="dnsIp">Resolviendo...</div>
             </div>
             <div class="status-item">
-                <div class="status-label">Última actualización</div>
+                <div class="status-label">Última Actualización</div>
                 <div class="status-value" id="lastUpdate">-</div>
             </div>
         </div>
@@ -464,16 +434,14 @@
 
             <div class="cmd-group">
                 <label class="cmd-label">Linux / Mac</label>
-                <div class="cmd-box">
-                    IP=$(curl -s https://ipinfo.io/ip) && curl -u admin:password "http://localhost:5000/api/update?ip=$IP"
+                <div class="cmd-box">IP=$(curl -s https://ipinfo.io/ip) && curl -u admin:password "http://localhost:5000/api/update?ip=$IP"
                     <div class="cmd-copy" onclick="copyCmdLinux(event)"></div>
                 </div>
             </div>
 
             <div class="cmd-group">
                 <label class="cmd-label">Windows PowerShell</label>
-                <div class="cmd-box">
-                    $ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl -u admin:password "http://localhost:5000/api/update?ip=$ip"
+                <div class="cmd-box">$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl -u admin:password "http://localhost:5000/api/update?ip=$ip"
                     <div class="cmd-copy" onclick="copyCmdWindows(event)"></div>
                 </div>
             </div>
@@ -509,20 +477,6 @@
                 document.getElementById('lastUpdate').textContent = data.lastUpdated || '-';
                 
                 updateCountdown(data.nextResetIn);
-                
-                const indicator = document.getElementById('syncIndicator');
-                const text = document.getElementById('syncText');
-                
-                if (data.isSynchronized) {
-                    indicator.className = 'status-indicator';
-                    text.textContent = '✅ Sincronizado';
-                } else if (data.dnsIp === 'No resuelto') {
-                    indicator.className = 'status-indicator pending';
-                    text.textContent = '⏳ Esperando DNS...';
-                } else {
-                    indicator.className = 'status-indicator pending';
-                    text.textContent = `⚠️ Desincronizado`;
-                }
             } catch (e) {
                 console.error('Error loading status:', e);
             }
@@ -549,7 +503,7 @@
 
                 if (response.ok) {
                     showMessage('✅ IP actualizada', 'success');
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                     loadStatus();
                 } else {
                     showMessage('❌ Error: ' + (data.error || 'Desconocido'), 'error');
@@ -575,7 +529,7 @@
 
                 if (response.ok) {
                     showMessage('✅ ' + data.message, 'success');
-                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    await new Promise(resolve => setTimeout(resolve, 1000));
                     loadStatus();
                 } else {
                     showMessage('❌ Error', 'error');
@@ -616,33 +570,6 @@
                 showMessage('❌ Error: ' + e.message, 'error');
             }
         }
-            const user = document.getElementById('newUser').value.trim();
-            const pass = document.getElementById('newPassword').value.trim();
-
-            if (!user || !pass) {
-                showMessage('❌ Usuario y contraseña requeridos', 'error');
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('user', user);
-            formData.append('password', pass);
-
-            try {
-                const response = await fetch('/api/credentials', { method: 'POST', body: formData });
-                const data = await response.json();
-
-                if (response.ok) {
-                    showMessage('✅ Credenciales guardadas', 'success');
-                    document.getElementById('warningBox').classList.remove('show');
-                    document.getElementById('credentialsSection').style.display = 'none';
-                } else {
-                    showMessage('❌ ' + (data.error || 'Error'), 'error');
-                }
-            } catch (e) {
-                showMessage('❌ Error: ' + e.message, 'error');
-            }
-        }
 
         function showMessage(msg, type) {
             const msgEl = document.getElementById('message');
@@ -657,14 +584,14 @@
             e.stopPropagation();
             const text = 'IP=$(curl -s https://ipinfo.io/ip) && curl -u admin:password "http://localhost:5000/api/update?ip=$IP"';
             navigator.clipboard.writeText(text);
-            showMessage('✅ Copiado', 'success');
+            showMessage('✅ Copiado al portapapeles', 'success');
         }
 
         function copyCmdWindows(e) {
             e.stopPropagation();
             const text = '$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl -u admin:password "http://localhost:5000/api/update?ip=$ip"';
             navigator.clipboard.writeText(text);
-            showMessage('✅ Copiado', 'success');
+            showMessage('✅ Copiado al portapapeles', 'success');
         }
 
         checkDefaults();
