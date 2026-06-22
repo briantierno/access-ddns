@@ -135,10 +135,30 @@
             50% { opacity: 0.5; }
         }
 
+        .countdown-box {
+            background: rgba(156, 39, 176, 0.1);
+            border: 1px solid rgba(156, 39, 176, 0.5);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .countdown-box span {
+            font-weight: bold;
+            color: #9c27b0;
+            font-family: 'Courier New', monospace;
+        }
+
         .controls {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .controls-danger {
             margin-bottom: 30px;
         }
 
@@ -182,8 +202,25 @@
             transform: translateY(0);
         }
 
+        .btn-disconnect {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+            grid-column: 1 / -1;
+            width: 100%;
+        }
+
+        .btn-disconnect:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(244, 67, 54, 0.4);
+        }
+
+        .btn-disconnect:active {
+            transform: translateY(0);
+        }
+
         .btn-update:disabled,
-        .btn-refresh:disabled {
+        .btn-refresh:disabled,
+        .btn-disconnect:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none !important;
@@ -209,6 +246,13 @@
             color: #f44336;
             border: 1px solid #f44336;
             display: block;
+        }
+
+        .sync-status {
+            font-size: 13px;
+            text-align: center;
+            color: #999;
+            margin-bottom: 20px;
         }
 
         .instructions {
@@ -258,10 +302,6 @@
             border-color: rgba(255, 149, 0, 0.5);
         }
 
-        .cmd-box.copied {
-            border-color: #4caf50;
-        }
-
         .copy-indicator {
             position: absolute;
             right: 10px;
@@ -284,36 +324,6 @@
             border-top: 1px solid rgba(255, 149, 0, 0.1);
             font-size: 12px;
             color: #666;
-        }
-
-        .sync-status {
-            font-size: 13px;
-            text-align: center;
-            color: #999;
-            margin-bottom: 20px;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 4px;
-            height: 4px;
-            background: #ff9500;
-            border-radius: 50%;
-            margin: 0 2px;
-            animation: dots 1.5s infinite;
-        }
-
-        .loading:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .loading:nth-child(3) {
-            animation-delay: 0.4s;
-        }
-
-        @keyframes dots {
-            0%, 100% { opacity: 0.4; }
-            50% { opacity: 1; }
         }
 
         @media (max-width: 600px) {
@@ -365,9 +375,17 @@
             </div>
         </div>
 
+        <div class="countdown-box">
+            Auto-reset en: <span id="countdown">Calculando...</span>
+        </div>
+
         <div class="controls">
             <button class="btn-update" onclick="updateNow()">Actualizar Ahora</button>
             <button class="btn-refresh" onclick="location.reload()">Forzar Refresh</button>
+        </div>
+
+        <div class="controls-danger">
+            <button class="btn-disconnect" onclick="disconnect()">❌ Desconectar (Reset 1.1.1.1)</button>
         </div>
 
         <div class="instructions">
@@ -376,7 +394,7 @@
             <div class="cmd-group">
                 <label class="cmd-label">Linux / Mac:</label>
                 <div class="cmd-box" onclick="copyCmd(this)">
-                    IP=$(curl -s https://ipinfo.io/ip) && curl -u admin "https://dmz.ar/access/api/update?ip=$IP"
+                    IP=$(curl -s https://ipinfo.io/ip) && curl -u admin:password "http://localhost:5000/api/update?ip=$IP"
                     <span class="copy-indicator">Copiar</span>
                 </div>
             </div>
@@ -384,7 +402,7 @@
             <div class="cmd-group">
                 <label class="cmd-label">Windows PowerShell:</label>
                 <div class="cmd-box" onclick="copyCmd(this)">
-                    $ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl -u admin "https://dmz.ar/access/api/update?ip=$ip"
+                    $ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl -u admin:password "http://localhost:5000/api/update?ip=$ip"
                     <span class="copy-indicator">Copiar</span>
                 </div>
             </div>
@@ -392,22 +410,14 @@
             <div class="cmd-group">
                 <label class="cmd-label">Con credenciales explícitas:</label>
                 <div class="cmd-box" onclick="copyCmd(this)">
-                    curl "https://dmz.ar/access/api/update?user=admin&pass=password&ip=200.100.50.25"
-                    <span class="copy-indicator">Copiar</span>
-                </div>
-            </div>
-
-            <div class="cmd-group">
-                <label class="cmd-label">Con wget:</label>
-                <div class="cmd-box" onclick="copyCmd(this)">
-                    IP=$(curl -s https://ipinfo.io/ip) && wget --user=admin --password=password "https://dmz.ar/access/api/update?ip=$IP" -O -
+                    curl "http://localhost:5000/api/update?user=admin&pass=password&ip=200.100.50.25"
                     <span class="copy-indicator">Copiar</span>
                 </div>
             </div>
         </div>
 
         <div class="footer">
-            <p>Auto-actualización cada 3 segundos • access.dmz.ar</p>
+            <p>Auto-actualización cada 3 segundos • Auto-reset cada 6 horas</p>
         </div>
     </div>
 
@@ -421,6 +431,9 @@
                 document.getElementById('currentIp').textContent = data.currentIp || 'Error';
                 document.getElementById('dnsIp').textContent = data.dnsIp || 'No resuelto';
                 document.getElementById('lastUpdate').textContent = data.lastUpdated || '-';
+                
+                // Countdown
+                updateCountdown(data.nextResetIn);
                 
                 // Actualizar estado de sincronización
                 const indicator = document.getElementById('syncIndicator');
@@ -443,6 +456,13 @@
                 indicator.className = 'status-indicator error';
                 document.getElementById('syncText').textContent = '❌ Error cargando datos';
             }
+        }
+
+        function updateCountdown(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = Math.floor(seconds % 60);
+            document.getElementById('countdown').textContent = `${h}h ${m}m ${s}s`;
         }
 
         async function updateNow() {
@@ -472,6 +492,32 @@
             }
         }
 
+        async function disconnect() {
+            const btn = event.target;
+            if (!confirm('¿Desconectar? La IP se reseteará a 1.1.1.1')) return;
+
+            btn.disabled = true;
+            btn.textContent = 'Desconectando...';
+
+            try {
+                const response = await fetch('/api/disconnect', { method: 'POST' });
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('✅ ' + data.message, 'success');
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    loadStatus();
+                } else {
+                    showMessage('❌ Error: ' + (data.error || 'Desconocido'), 'error');
+                }
+            } catch (e) {
+                showMessage('❌ Error: ' + e.message, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '❌ Desconectar (Reset 1.1.1.1)';
+            }
+        }
+
         function showMessage(msg, type) {
             const msgEl = document.getElementById('message');
             msgEl.textContent = msg;
@@ -484,15 +530,18 @@
         function copyCmd(el) {
             const text = el.textContent.replace('Copiar', '').trim();
             navigator.clipboard.writeText(text).then(() => {
-                el.classList.add('copied');
-                setTimeout(() => el.classList.remove('copied'), 2000);
+                const original = el.textContent;
+                el.textContent = '✅ Copiado!';
+                setTimeout(() => {
+                    el.textContent = original;
+                }, 2000);
             });
         }
 
         // Cargar status inicialmente
         loadStatus();
 
-        // Auto-refresh cada 3 segundos (sin caché)
+        // Auto-refresh cada 3 segundos sin caché
         setInterval(loadStatus, 3000);
     </script>
 </body>
