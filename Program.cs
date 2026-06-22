@@ -10,34 +10,60 @@ using Microsoft.AspNetCore.Http;
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
 
-var adminUser = Environment.GetEnvironmentVariable("ADMIN_USER") ?? "admin";
-var adminPassMd5 = Environment.GetEnvironmentVariable("ADMIN_PASS_MD5") ?? "5f4dcc3b5aa765d61d8327deb882cf99";
+var defaultUser = "admin";
+var defaultPassMd5 = "5f4dcc3b5aa765d61d8327deb882cf99"; // "password"
+var credFile = "./credentials.json";
+var timestampFile = "./lastupdate.json";
 var cdmonEndpoint = "https://dinamico.cdmon.org/onlineService.php";
 var cdmonParams = "enctype=MD5&n=dmzaccess&p=e8a2d6bc68ffc4c0775435fbfc3cbadb";
 var domainToCheck = "access.dmz.ar";
-var timestampFile = "./lastupdate.json";
 var autoResetHours = 6;
 
-// Guardar timestamp de última actualización
-void SaveTimestamp(DateTime dt)
-{
-    var data = new { lastUpdate = dt.ToString("O") };
-    File.WriteAllText(timestampFile, JsonSerializer.Serialize(data));
-    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Timestamp guardado: {dt}");
-}
+// Credenciales actuales
+string currentUser = defaultUser;
+string currentPassMd5 = defaultPassMd5;
 
-// Obtener timestamp de última actualización
-DateTime? GetLastTimestamp()
+// Cargar credenciales guardadas
+void LoadCredentials()
 {
     try
     {
-        if (!File.Exists(timestampFile)) return null;
-        var json = File.ReadAllText(timestampFile);
-        var doc = JsonDocument.Parse(json);
-        var lastUpdateStr = doc.RootElement.GetProperty("lastUpdate").GetString();
-        return DateTime.Parse(lastUpdateStr);
+        if (File.Exists(credFile))
+        {
+            var json = File.ReadAllText(credFile);
+            var doc = JsonDocument.Parse(json);
+            currentUser = doc.RootElement.GetProperty("user").GetString() ?? defaultUser;
+            currentPassMd5 = doc.RootElement.GetProperty("passMd5").GetString() ?? defaultPassMd5;
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Credenciales cargadas: {currentUser}");
+        }
     }
-    catch { return null; }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Error cargando credenciales: {ex.Message}");
+    }
+}
+
+// Guardar credenciales
+void SaveCredentials(string user, string passMd5)
+{
+    try
+    {
+        var data = new { user = user, passMd5 = passMd5 };
+        File.WriteAllText(credFile, JsonSerializer.Serialize(data));
+        currentUser = user;
+        currentPassMd5 = passMd5;
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Credenciales guardadas: {user}");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Error guardando credenciales: {ex.Message}");
+    }
+}
+
+// Verificar si están en defaults
+bool IsDefaultCredentials()
+{
+    return currentUser == defaultUser && currentPassMd5 == defaultPassMd5;
 }
 
 // Validar Basic Auth
@@ -57,17 +83,39 @@ bool ValidateAuth(HttpContext context, out string user)
         var pass = parts.Length > 1 ? parts[1] : "";
         var passHash = GetMd5Hash(pass);
 
-        return user == adminUser && passHash == adminPassMd5;
+        return user == currentUser && passHash == currentPassMd5;
     }
     catch { return false; }
 }
 
+void SaveTimestamp(DateTime dt)
+{
+    var data = new { lastUpdate = dt.ToString("O") };
+    File.WriteAllText(timestampFile, JsonSerializer.Serialize(data));
+    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Timestamp guardado: {dt}");
+}
+
+DateTime? GetLastTimestamp()
+{
+    try
+    {
+        if (!File.Exists(timestampFile)) return null;
+        var json = File.ReadAllText(timestampFile);
+        var doc = JsonDocument.Parse(json);
+        var lastUpdateStr = doc.RootElement.GetProperty("lastUpdate").GetString();
+        return DateTime.Parse(lastUpdateStr);
+    }
+    catch { return null; }
+}
+
+LoadCredentials();
+
 app.UseStaticFiles();
 
-// GET /access - Requiere autenticación
+// GET /access - Entra sin auth si defaults, con auth si personalizado
 app.MapGet("/access", async (HttpContext context) =>
 {
-    if (!ValidateAuth(context, out _))
+    if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
     {
         context.Response.StatusCode = 401;
         context.Response.Headers.Add("WWW-Authenticate", "Basic realm=\"access.dmz.ar\"");
@@ -81,10 +129,28 @@ app.MapGet("/access", async (HttpContext context) =>
     await context.Response.SendFileAsync("./wwwroot/index.html");
 });
 
+// GET /api/config - Devuelve si está en defaults
+app.MapGet("/api/config", async (HttpContext context) =>
+{
+    if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
+    {
+        context.Response.StatusCode = 401;
+        await context.Response.WriteAsJsonAsync(new { error = "Unauthorized" });
+        return;
+    }
+
+    context.Response.ContentType = "application/json";
+    context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
+    await context.Response.WriteAsJsonAsync(new
+    {
+        isDefault = IsDefaultCredentials()
+    });
+});
+
 // GET /api/status
 app.MapGet("/api/status", async (HttpContext context) =>
 {
-    if (!ValidateAuth(context, out _))
+    if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
     {
         context.Response.StatusCode = 401;
         await context.Response.WriteAsJsonAsync(new { error = "Unauthorized" });
@@ -145,7 +211,6 @@ app.MapGet("/api/status", async (HttpContext context) =>
         Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Error /api/status: {ex.Message}");
         context.Response.StatusCode = 500;
         context.Response.ContentType = "application/json";
-        context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
         await context.Response.WriteAsJsonAsync(new { error = ex.Message });
     }
 });
@@ -153,7 +218,7 @@ app.MapGet("/api/status", async (HttpContext context) =>
 // POST /api/update
 app.MapPost("/api/update", async (HttpContext context) =>
 {
-    if (!ValidateAuth(context, out _))
+    if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
     {
         context.Response.StatusCode = 401;
         await context.Response.WriteAsJsonAsync(new { error = "Unauthorized" });
@@ -178,8 +243,6 @@ app.MapPost("/api/update", async (HttpContext context) =>
 
         SaveTimestamp(DateTime.Now);
 
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Actualizado correctamente");
-
         context.Response.ContentType = "application/json";
         context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
         await context.Response.WriteAsJsonAsync(new
@@ -194,15 +257,14 @@ app.MapPost("/api/update", async (HttpContext context) =>
         Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Error /api/update: {ex.Message}");
         context.Response.StatusCode = 500;
         context.Response.ContentType = "application/json";
-        context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
         await context.Response.WriteAsJsonAsync(new { error = ex.Message });
     }
 });
 
-// GET /api/update (también GET)
+// GET /api/update
 app.MapGet("/api/update", async (HttpContext context) =>
 {
-    if (!ValidateAuth(context, out _))
+    if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
     {
         context.Response.StatusCode = 401;
         await context.Response.WriteAsJsonAsync(new { error = "Unauthorized" });
@@ -241,15 +303,14 @@ app.MapGet("/api/update", async (HttpContext context) =>
         Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Error /api/update (GET): {ex.Message}");
         context.Response.StatusCode = 500;
         context.Response.ContentType = "application/json";
-        context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
         await context.Response.WriteAsJsonAsync(new { error = ex.Message });
     }
 });
 
-// POST /api/disconnect - Setea 1.1.1.1
+// POST /api/disconnect
 app.MapPost("/api/disconnect", async (HttpContext context) =>
 {
-    if (!ValidateAuth(context, out _))
+    if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
     {
         context.Response.StatusCode = 401;
         await context.Response.WriteAsJsonAsync(new { error = "Unauthorized" });
@@ -281,15 +342,14 @@ app.MapPost("/api/disconnect", async (HttpContext context) =>
         Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Error /api/disconnect: {ex.Message}");
         context.Response.StatusCode = 500;
         context.Response.ContentType = "application/json";
-        context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
         await context.Response.WriteAsJsonAsync(new { error = ex.Message });
     }
 });
 
-// GET /api/update (también GET)
+// GET /api/disconnect
 app.MapGet("/api/disconnect", async (HttpContext context) =>
 {
-    if (!ValidateAuth(context, out _))
+    if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
     {
         context.Response.StatusCode = 401;
         await context.Response.WriteAsJsonAsync(new { error = "Unauthorized" });
@@ -321,7 +381,48 @@ app.MapGet("/api/disconnect", async (HttpContext context) =>
         Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Error /api/disconnect (GET): {ex.Message}");
         context.Response.StatusCode = 500;
         context.Response.ContentType = "application/json";
-        context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
+        await context.Response.WriteAsJsonAsync(new { error = ex.Message });
+    }
+});
+
+// POST /api/credentials - Cambiar credenciales
+app.MapPost("/api/credentials", async (HttpContext context) =>
+{
+    if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
+    {
+        context.Response.StatusCode = 401;
+        await context.Response.WriteAsJsonAsync(new { error = "Unauthorized" });
+        return;
+    }
+
+    try
+    {
+        var body = await context.Request.ReadAsFormAsync();
+        var newUser = body["user"].ToString();
+        var newPass = body["password"].ToString();
+
+        if (string.IsNullOrEmpty(newUser) || string.IsNullOrEmpty(newPass))
+        {
+            context.Response.StatusCode = 400;
+            await context.Response.WriteAsJsonAsync(new { error = "Usuario y contraseña requeridos" });
+            return;
+        }
+
+        var newPassMd5 = GetMd5Hash(newPass);
+        SaveCredentials(newUser, newPassMd5);
+
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new
+        {
+            success = true,
+            message = "Credenciales actualizadas correctamente"
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Error /api/credentials: {ex.Message}");
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
         await context.Response.WriteAsJsonAsync(new { error = ex.Message });
     }
 });

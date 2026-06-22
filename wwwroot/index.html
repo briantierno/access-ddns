@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Access DDNS</title>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -12,17 +12,24 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
             background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             color: #e0e0e0;
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 16px;
         }
 
         .container {
@@ -30,36 +37,56 @@
             max-width: 700px;
             background: rgba(30, 30, 30, 0.95);
             border-radius: 12px;
-            padding: 40px;
+            padding: 20px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(255, 149, 0, 0.2);
         }
 
         .header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
         .header h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
+            font-size: clamp(24px, 6vw, 28px);
+            margin-bottom: 8px;
             background: linear-gradient(135deg, #ff9500 0%, #9c27b0 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
+        .header p {
+            color: #999;
+            font-size: clamp(12px, 3vw, 13px);
+        }
+
+        .warning-box {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.5);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #ffc107;
+            display: none;
+        }
+
+        .warning-box.show {
+            display: block;
+        }
+
         .ip-section {
             background: rgba(255, 149, 0, 0.1);
             border: 2px solid #ff9500;
             border-radius: 8px;
-            padding: 25px;
-            margin-bottom: 30px;
+            padding: 20px;
+            margin-bottom: 20px;
             text-align: center;
         }
 
         .ip-label {
-            font-size: 12px;
+            font-size: 11px;
             color: #999;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -67,29 +94,24 @@
         }
 
         .ip-display {
-            font-size: 48px;
+            font-size: clamp(32px, 8vw, 48px);
             font-weight: bold;
             font-family: 'Courier New', monospace;
             color: #ff9500;
             word-break: break-all;
-            animation: pulse 0.6s ease-in-out;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
+            line-height: 1.2;
         }
 
         .status-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 30px;
+            gap: 12px;
+            margin-bottom: 20px;
         }
 
         .status-item {
             background: rgba(45, 45, 45, 0.8);
-            padding: 15px;
+            padding: 12px;
             border-radius: 8px;
             border-left: 3px solid #9c27b0;
         }
@@ -99,14 +121,14 @@
         }
 
         .status-label {
-            font-size: 11px;
+            font-size: 10px;
             color: #999;
             text-transform: uppercase;
             margin-bottom: 5px;
         }
 
         .status-value {
-            font-size: 14px;
+            font-size: 13px;
             font-family: 'Courier New', monospace;
             color: #e0e0e0;
             word-break: break-all;
@@ -139,10 +161,10 @@
             background: rgba(156, 39, 176, 0.1);
             border: 1px solid rgba(156, 39, 176, 0.5);
             border-radius: 8px;
-            padding: 12px;
+            padding: 10px;
             margin-bottom: 20px;
             text-align: center;
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .countdown-box span {
@@ -151,86 +173,18 @@
             font-family: 'Courier New', monospace;
         }
 
-        .controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .controls-danger {
-            margin-bottom: 30px;
-        }
-
-        button {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-update {
-            background: linear-gradient(135deg, #ff9500 0%, #ff7500 100%);
-            color: white;
-        }
-
-        .btn-update:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(255, 149, 0, 0.4);
-        }
-
-        .btn-update:active {
-            transform: translateY(0);
-        }
-
-        .btn-refresh {
-            background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
-            color: white;
-        }
-
-        .btn-refresh:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(156, 39, 176, 0.4);
-        }
-
-        .btn-refresh:active {
-            transform: translateY(0);
-        }
-
-        .btn-disconnect {
-            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
-            color: white;
-            grid-column: 1 / -1;
-            width: 100%;
-        }
-
-        .btn-disconnect:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(244, 67, 54, 0.4);
-        }
-
-        .btn-disconnect:active {
-            transform: translateY(0);
-        }
-
-        .btn-update:disabled,
-        .btn-refresh:disabled,
-        .btn-disconnect:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none !important;
+        .sync-status {
+            font-size: 12px;
+            text-align: center;
+            color: #999;
+            margin-bottom: 15px;
         }
 
         .message {
-            padding: 12px 15px;
+            padding: 10px 12px;
             border-radius: 6px;
-            margin-bottom: 20px;
-            font-size: 13px;
+            margin-bottom: 15px;
+            font-size: 12px;
             display: none;
         }
 
@@ -248,27 +202,114 @@
             display: block;
         }
 
-        .sync-status {
-            font-size: 13px;
-            text-align: center;
-            color: #999;
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .controls-danger {
             margin-bottom: 20px;
         }
 
-        .instructions {
+        button {
+            padding: 11px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-update {
+            background: linear-gradient(135deg, #ff9500 0%, #ff7500 100%);
+            color: white;
+        }
+
+        .btn-update:active {
+            transform: scale(0.95);
+        }
+
+        .btn-refresh {
+            background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+            color: white;
+        }
+
+        .btn-refresh:active {
+            transform: scale(0.95);
+        }
+
+        .btn-disconnect {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+            grid-column: 1 / -1;
+            width: 100%;
+        }
+
+        .btn-disconnect:active {
+            transform: scale(0.95);
+        }
+
+        .btn-update:disabled,
+        .btn-refresh:disabled,
+        .btn-disconnect:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .section {
             background: rgba(45, 45, 45, 0.8);
             border: 1px solid rgba(156, 39, 176, 0.3);
             border-radius: 8px;
-            padding: 20px;
-            margin-top: 30px;
+            padding: 15px;
+            margin-bottom: 15px;
         }
 
-        .instructions h3 {
-            font-size: 14px;
+        .section h3 {
+            font-size: 13px;
             color: #9c27b0;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             text-transform: uppercase;
             letter-spacing: 1px;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 9px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 149, 0, 0.3);
+            border-radius: 4px;
+            color: #e0e0e0;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #ff9500;
+        }
+
+        .btn-save {
+            width: 100%;
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            color: white;
+            margin-top: 10px;
         }
 
         .cmd-group {
@@ -276,7 +317,7 @@
         }
 
         .cmd-label {
-            font-size: 11px;
+            font-size: 10px;
             color: #999;
             text-transform: uppercase;
             margin-bottom: 5px;
@@ -287,52 +328,60 @@
             background: rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(255, 149, 0, 0.2);
             border-radius: 4px;
-            padding: 10px;
+            padding: 10px 12px;
             font-family: 'Courier New', monospace;
-            font-size: 12px;
+            font-size: 11px;
             color: #ff9500;
             overflow-x: auto;
-            cursor: pointer;
-            transition: all 0.2s;
+            -webkit-overflow-scrolling: touch;
             position: relative;
+            word-break: break-all;
         }
 
-        .cmd-box:hover {
-            background: rgba(0, 0, 0, 0.7);
-            border-color: rgba(255, 149, 0, 0.5);
-        }
-
-        .copy-indicator {
+        .cmd-copy {
             position: absolute;
             right: 10px;
             top: 50%;
             transform: translateY(-50%);
-            font-size: 10px;
-            color: #999;
-            opacity: 0;
-            transition: opacity 0.2s;
+            background: rgba(255, 149, 0, 0.2);
+            border: 1px solid rgba(255, 149, 0, 0.5);
+            border-radius: 4px;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 12px;
         }
 
-        .cmd-box:hover .copy-indicator {
-            opacity: 1;
+        .cmd-copy:active {
+            background: rgba(76, 175, 80, 0.3);
+            border-color: #4caf50;
+        }
+
+        .cmd-copy::before {
+            content: '📋';
         }
 
         .footer {
             text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
+            margin-top: 20px;
+            padding-top: 15px;
             border-top: 1px solid rgba(255, 149, 0, 0.1);
-            font-size: 12px;
+            font-size: 11px;
             color: #666;
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 480px) {
             .container {
-                padding: 25px;
+                padding: 16px;
+                border-radius: 8px;
             }
 
-            .ip-display {
-                font-size: 36px;
+            .header h1 {
+                font-size: 22px;
             }
 
             .status-grid {
@@ -340,7 +389,12 @@
             }
 
             .controls {
-                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            button {
+                font-size: 12px;
+                padding: 10px 14px;
             }
         }
     </style>
@@ -349,10 +403,14 @@
     <div class="container">
         <div class="header">
             <h1>ACCESS DDNS</h1>
-            <p style="color: #999; font-size: 13px;">Actualizar IP dinámica automáticamente</p>
+            <p>Actualizar IP dinámica automáticamente</p>
         </div>
 
         <div id="message" class="message"></div>
+
+        <div id="warningBox" class="warning-box">
+            ⚠️ <strong>Credenciales por defecto detectadas.</strong> Por seguridad, cambialas lo antes posible en "Configuración".
+        </div>
 
         <div class="ip-section">
             <div class="ip-label">Tu IP pública actual</div>
@@ -380,38 +438,43 @@
         </div>
 
         <div class="controls">
-            <button class="btn-update" onclick="updateNow()">Actualizar Ahora</button>
-            <button class="btn-refresh" onclick="location.reload()">Forzar Refresh</button>
+            <button class="btn-update" onclick="updateNow()">Actualizar</button>
+            <button class="btn-refresh" onclick="location.reload()">Refresh</button>
         </div>
 
         <div class="controls-danger">
-            <button class="btn-disconnect" onclick="disconnect()">❌ Desconectar (Reset 1.1.1.1)</button>
+            <button class="btn-disconnect" onclick="disconnect()">❌ Desconectar</button>
         </div>
 
-        <div class="instructions">
-            <h3>📡 Acceso vía Terminal</h3>
+        <div id="credentialsSection" class="section" style="display: none;">
+            <h3>🔐 Cambiar Credenciales</h3>
+            <div class="form-group">
+                <label>Usuario</label>
+                <input type="text" id="newUser" placeholder="admin" value="admin">
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="newPassword" placeholder="password">
+            </div>
+            <button class="btn-save" onclick="saveCredentials()">Guardar</button>
+        </div>
+
+        <div class="section">
+            <h3>📡 Consola</h3>
 
             <div class="cmd-group">
-                <label class="cmd-label">Linux / Mac:</label>
-                <div class="cmd-box" onclick="copyCmd(this)">
+                <label class="cmd-label">Linux / Mac</label>
+                <div class="cmd-box">
                     IP=$(curl -s https://ipinfo.io/ip) && curl -u admin:password "http://localhost:5000/api/update?ip=$IP"
-                    <span class="copy-indicator">Copiar</span>
+                    <div class="cmd-copy" onclick="copyCmdLinux(event)"></div>
                 </div>
             </div>
 
             <div class="cmd-group">
-                <label class="cmd-label">Windows PowerShell:</label>
-                <div class="cmd-box" onclick="copyCmd(this)">
+                <label class="cmd-label">Windows PowerShell</label>
+                <div class="cmd-box">
                     $ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl -u admin:password "http://localhost:5000/api/update?ip=$ip"
-                    <span class="copy-indicator">Copiar</span>
-                </div>
-            </div>
-
-            <div class="cmd-group">
-                <label class="cmd-label">Con credenciales explícitas:</label>
-                <div class="cmd-box" onclick="copyCmd(this)">
-                    curl "http://localhost:5000/api/update?user=admin&pass=password&ip=200.100.50.25"
-                    <span class="copy-indicator">Copiar</span>
+                    <div class="cmd-copy" onclick="copyCmdWindows(event)"></div>
                 </div>
             </div>
         </div>
@@ -422,6 +485,19 @@
     </div>
 
     <script>
+        async function checkDefaults() {
+            try {
+                const response = await fetch('/api/config');
+                const data = await response.json();
+                if (data.isDefault) {
+                    document.getElementById('warningBox').classList.add('show');
+                    document.getElementById('credentialsSection').style.display = 'block';
+                }
+            } catch (e) {
+                console.error('Error checking config:', e);
+            }
+        }
+
         async function loadStatus() {
             try {
                 const timestamp = new Date().getTime();
@@ -432,29 +508,23 @@
                 document.getElementById('dnsIp').textContent = data.dnsIp || 'No resuelto';
                 document.getElementById('lastUpdate').textContent = data.lastUpdated || '-';
                 
-                // Countdown
                 updateCountdown(data.nextResetIn);
                 
-                // Actualizar estado de sincronización
                 const indicator = document.getElementById('syncIndicator');
                 const text = document.getElementById('syncText');
                 
                 if (data.isSynchronized) {
                     indicator.className = 'status-indicator';
-                    text.textContent = '✅ Sincronizado correctamente';
+                    text.textContent = '✅ Sincronizado';
                 } else if (data.dnsIp === 'No resuelto') {
                     indicator.className = 'status-indicator pending';
-                    text.textContent = '⏳ Esperando resolución DNS...';
+                    text.textContent = '⏳ Esperando DNS...';
                 } else {
                     indicator.className = 'status-indicator pending';
-                    text.textContent = `⚠️ Desincronizado (IP: ${data.dnsIp})`;
+                    text.textContent = `⚠️ Desincronizado`;
                 }
             } catch (e) {
                 console.error('Error loading status:', e);
-                document.getElementById('currentIp').textContent = 'Error';
-                const indicator = document.getElementById('syncIndicator');
-                indicator.className = 'status-indicator error';
-                document.getElementById('syncText').textContent = '❌ Error cargando datos';
             }
         }
 
@@ -478,7 +548,7 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    showMessage('✅ IP actualizada correctamente', 'success');
+                    showMessage('✅ IP actualizada', 'success');
                     await new Promise(resolve => setTimeout(resolve, 2000));
                     loadStatus();
                 } else {
@@ -488,14 +558,14 @@
                 showMessage('❌ Error: ' + e.message, 'error');
             } finally {
                 btn.disabled = false;
-                btn.textContent = 'Actualizar Ahora';
+                btn.textContent = 'Actualizar';
             }
         }
 
         async function disconnect() {
-            const btn = event.target;
-            if (!confirm('¿Desconectar? La IP se reseteará a 1.1.1.1')) return;
+            if (!confirm('¿Desconectar?')) return;
 
+            const btn = event.target;
             btn.disabled = true;
             btn.textContent = 'Desconectando...';
 
@@ -508,13 +578,42 @@
                     await new Promise(resolve => setTimeout(resolve, 2000));
                     loadStatus();
                 } else {
-                    showMessage('❌ Error: ' + (data.error || 'Desconocido'), 'error');
+                    showMessage('❌ Error', 'error');
                 }
             } catch (e) {
                 showMessage('❌ Error: ' + e.message, 'error');
             } finally {
                 btn.disabled = false;
-                btn.textContent = '❌ Desconectar (Reset 1.1.1.1)';
+                btn.textContent = '❌ Desconectar';
+            }
+        }
+
+        async function saveCredentials() {
+            const user = document.getElementById('newUser').value.trim();
+            const pass = document.getElementById('newPassword').value.trim();
+
+            if (!user || !pass) {
+                showMessage('❌ Usuario y contraseña requeridos', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('user', user);
+            formData.append('password', pass);
+
+            try {
+                const response = await fetch('/api/credentials', { method: 'POST', body: formData });
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('✅ Credenciales guardadas', 'success');
+                    document.getElementById('warningBox').classList.remove('show');
+                    document.getElementById('credentialsSection').style.display = 'none';
+                } else {
+                    showMessage('❌ ' + (data.error || 'Error'), 'error');
+                }
+            } catch (e) {
+                showMessage('❌ Error: ' + e.message, 'error');
             }
         }
 
@@ -524,24 +623,25 @@
             msgEl.className = 'message ' + type;
             setTimeout(() => {
                 msgEl.className = 'message';
-            }, 5000);
+            }, 4000);
         }
 
-        function copyCmd(el) {
-            const text = el.textContent.replace('Copiar', '').trim();
-            navigator.clipboard.writeText(text).then(() => {
-                const original = el.textContent;
-                el.textContent = '✅ Copiado!';
-                setTimeout(() => {
-                    el.textContent = original;
-                }, 2000);
-            });
+        function copyCmdLinux(e) {
+            e.stopPropagation();
+            const text = 'IP=$(curl -s https://ipinfo.io/ip) && curl -u admin:password "http://localhost:5000/api/update?ip=$IP"';
+            navigator.clipboard.writeText(text);
+            showMessage('✅ Copiado', 'success');
         }
 
-        // Cargar status inicialmente
+        function copyCmdWindows(e) {
+            e.stopPropagation();
+            const text = '$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl -u admin:password "http://localhost:5000/api/update?ip=$ip"';
+            navigator.clipboard.writeText(text);
+            showMessage('✅ Copiado', 'success');
+        }
+
+        checkDefaults();
         loadStatus();
-
-        // Auto-refresh cada 3 segundos sin caché
         setInterval(loadStatus, 3000);
     </script>
 </body>
