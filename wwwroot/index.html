@@ -7,6 +7,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -273,7 +274,7 @@
         }
 
         .cmd-group {
-            margin-bottom: 14px;
+            margin-bottom: 18px;
         }
 
         .cmd-label {
@@ -298,78 +299,60 @@
             line-height: 1.6;
             position: relative;
             background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(255, 149, 0, 0.05) 100%);
-            padding-bottom: 36px;
+            min-height: 50px;
+            padding-bottom: 44px;
         }
 
         .cmd-copy {
             position: absolute;
-            bottom: 6px;
-            right: 6px;
-            width: 24px;
-            height: 24px;
+            bottom: 8px;
+            right: 8px;
+            width: 32px;
+            height: 32px;
             background: rgba(255, 149, 0, 0.3);
             border: 1px solid #ff9500;
-            border-radius: 3px;
+            border-radius: 4px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.2s;
             padding: 0;
-            position: relative;
+            font-size: 16px;
+            color: #ff9500;
         }
 
         .cmd-copy:hover {
             background: rgba(255, 149, 0, 0.6);
-            transform: scale(1.15);
-        }
-
-        .cmd-copy::before {
-            content: '';
-            width: 10px;
-            height: 10px;
-            border: 1px solid #1a1a1a;
-            position: absolute;
-            bottom: 3px;
-            right: 3px;
-            border-radius: 1px;
-        }
-
-        .cmd-copy::after {
-            content: '';
-            width: 10px;
-            height: 10px;
-            border: 1px solid #1a1a1a;
-            position: absolute;
-            top: 2px;
-            left: 2px;
-            border-radius: 1px;
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(255, 149, 0, 0.3);
         }
 
         .cmd-copy-tooltip {
-            display: none;
             position: absolute;
-            bottom: 32px;
+            bottom: 40px;
             right: 0;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.95);
             color: #ff9500;
-            padding: 4px 8px;
+            padding: 6px 10px;
             border-radius: 4px;
-            font-size: 10px;
+            font-size: 11px;
             white-space: nowrap;
             border: 1px solid rgba(255, 149, 0, 0.5);
-            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
         }
 
         .cmd-copy:hover .cmd-copy-tooltip {
-            display: block;
+            opacity: 1;
         }
 
         .cmd-variant {
             font-size: 11px;
             color: #999;
-            margin-top: 4px;
-            padding-top: 4px;
+            margin-top: 8px;
+            padding-top: 8px;
             border-top: 1px solid rgba(255, 149, 0, 0.2);
         }
 
@@ -416,7 +399,6 @@
         @media (max-width: 480px) {
             .container {
                 padding: 20px;
-                border-radius: 8px;
             }
 
             .header h1 {
@@ -498,13 +480,15 @@
             <div class="cmd-group">
                 <label class="cmd-label">Linux / Mac / WSL (con -u)</label>
                 <div class="cmd-box">IP=$(curl -s https://ipinfo.io/ip) && curl -u <span id="cmdUser">admin</span>:<span id="cmdPass">password</span> "http://localhost:5000/api/update?ip=$IP"
-                    <div class="cmd-copy" onclick="copyCmdLinuxAuth(event)">
+                    <div class="cmd-copy" onclick="copyCmdLinuxAuth(event)" title="Copiar">
+                        <i class="fas fa-copy"></i>
                         <div class="cmd-copy-tooltip">Copy</div>
                     </div>
                 </div>
                 <div class="cmd-variant">O directamente (credenciales en URL):
-                    <div class="cmd-box" style="margin-top: 6px;">IP=$(curl -s https://ipinfo.io/ip) && curl "http://localhost:5000/api/update?ip=$IP&user=<span id="cmdUserUrl">admin</span>&pass=<span id="cmdPassUrl">password</span>"
-                    <div class="cmd-copy" onclick="copyCmdLinuxUrl(event)">
+                    <div class="cmd-box" style="margin-top: 8px;">IP=$(curl -s https://ipinfo.io/ip) && curl "http://localhost:5000/api/update?ip=$IP&user=<span id="cmdUserUrl">admin</span>&pass=<span id="cmdPassUrl">password</span>"
+                    <div class="cmd-copy" onclick="copyCmdLinuxUrl(event)" title="Copiar">
+                        <i class="fas fa-copy"></i>
                         <div class="cmd-copy-tooltip">Copy</div>
                     </div>
                 </div>
@@ -514,13 +498,15 @@
             <div class="cmd-group">
                 <label class="cmd-label">Windows PowerShell (con -u)</label>
                 <div class="cmd-box">$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl -u <span id="cmdUserPs">admin</span>:<span id="cmdPassPs">password</span> "http://localhost:5000/api/update?ip=$ip"
-                    <div class="cmd-copy" onclick="copyCmdWindowsAuth(event)">
+                    <div class="cmd-copy" onclick="copyCmdWindowsAuth(event)" title="Copiar">
+                        <i class="fas fa-copy"></i>
                         <div class="cmd-copy-tooltip">Copy</div>
                     </div>
                 </div>
                 <div class="cmd-variant">O directamente (credenciales en URL):
-                    <div class="cmd-box" style="margin-top: 6px;">$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl "http://localhost:5000/api/update?ip=$ip&user=<span id="cmdUserPsUrl">admin</span>&pass=<span id="cmdPassPsUrl">password</span>"
-                    <div class="cmd-copy" onclick="copyCmdWindowsUrl(event)">
+                    <div class="cmd-box" style="margin-top: 8px;">$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl "http://localhost:5000/api/update?ip=$ip&user=<span id="cmdUserPsUrl">admin</span>&pass=<span id="cmdPassPsUrl">password</span>"
+                    <div class="cmd-copy" onclick="copyCmdWindowsUrl(event)" title="Copiar">
+                        <i class="fas fa-copy"></i>
                         <div class="cmd-copy-tooltip">Copy</div>
                     </div>
                 </div>
@@ -530,13 +516,15 @@
             <div class="cmd-group">
                 <label class="cmd-label">Windows CMD / Bash / Universal (con -u)</label>
                 <div class="cmd-box">curl -u <span id="cmdUserSimple">admin</span>:<span id="cmdPassSimple">password</span> http://localhost:5000/api/update
-                    <div class="cmd-copy" onclick="copyCmdSimpleAuth(event)">
+                    <div class="cmd-copy" onclick="copyCmdSimpleAuth(event)" title="Copiar">
+                        <i class="fas fa-copy"></i>
                         <div class="cmd-copy-tooltip">Copy</div>
                     </div>
                 </div>
                 <div class="cmd-variant">O directamente (credenciales en URL):
-                    <div class="cmd-box" style="margin-top: 6px;">curl "http://localhost:5000/api/update?user=<span id="cmdUserSimpleUrl">admin</span>&pass=<span id="cmdPassSimpleUrl">password</span>"
-                    <div class="cmd-copy" onclick="copyCmdSimpleUrl(event)">
+                    <div class="cmd-box" style="margin-top: 8px;">curl "http://localhost:5000/api/update?user=<span id="cmdUserSimpleUrl">admin</span>&pass=<span id="cmdPassSimpleUrl">password</span>"
+                    <div class="cmd-copy" onclick="copyCmdSimpleUrl(event)" title="Copiar">
+                        <i class="fas fa-copy"></i>
                         <div class="cmd-copy-tooltip">Copy</div>
                     </div>
                 </div>
@@ -606,35 +594,28 @@
                 const currentIp = data.currentIp || '';
                 const dnsIp = data.dnsIp || '';
                 
-                // Si fue actualizada recientemente, mostrar loader y propagando
                 if (wasJustUpdated || wasJustDisconnected) {
-                    if (currentIp === dnsIp && currentIp !== 'No resuelto') {
-                        // Sincronizado
+                    if (currentIp === dnsIp && currentIp !== 'No resuelto' && currentIp !== 'Error') {
                         syncText.textContent = '✅ Sincronizado';
                         syncText.style.color = '#4caf50';
                         dnsLoader.classList.remove('show');
                         wasJustUpdated = false;
                         wasJustDisconnected = false;
-                    } else if (dnsIp === 'No resuelto' || currentIp !== dnsIp) {
-                        // Aún propagando
+                    } else {
                         syncText.textContent = '⏳ Propagando...';
                         syncText.style.color = '#ff9500';
                         dnsLoader.classList.add('show');
                     }
                 } else {
-                    // Cuando no hay actualización reciente
-                    if (currentIp === dnsIp && currentIp !== 'No resuelto') {
-                        // Sincronizado
+                    if (currentIp === dnsIp && currentIp !== 'No resuelto' && currentIp !== 'Error') {
                         syncText.textContent = '✅ Sincronizado';
                         syncText.style.color = '#4caf50';
                         dnsLoader.classList.remove('show');
                     } else if (dnsIp === 'No resuelto') {
-                        // No resuelto
                         syncText.textContent = '⏳ Esperando DNS...';
                         syncText.style.color = '#ff9500';
                         dnsLoader.classList.add('show');
                     } else {
-                        // Desincronizado
                         syncText.textContent = '⚠️ Desincronizado';
                         syncText.style.color = '#ff9500';
                         dnsLoader.classList.remove('show');
