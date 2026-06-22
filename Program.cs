@@ -103,7 +103,7 @@ DateTime? GetLastTimestamp()
         var json = File.ReadAllText(timestampFile);
         var doc = JsonDocument.Parse(json);
         var lastUpdateStr = doc.RootElement.GetProperty("lastUpdate").GetString();
-        return DateTime.Parse(lastUpdateStr);
+        return lastUpdateStr != null ? DateTime.Parse(lastUpdateStr) : null;
     }
     catch { return null; }
 }
@@ -112,24 +112,24 @@ LoadCredentials();
 
 app.UseStaticFiles();
 
-// GET /access - Entra sin auth si defaults, con auth si personalizado
+// GET /access
 app.MapGet("/access", async (HttpContext context) =>
 {
     if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
     {
         context.Response.StatusCode = 401;
-        context.Response.Headers.Add("WWW-Authenticate", "Basic realm=\"access.dmz.ar\"");
+        context.Response.Headers["WWW-Authenticate"] = "Basic realm=\"access.dmz.ar\"";
         await context.Response.WriteAsync("Unauthorized");
         return;
     }
 
-    context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
-    context.Response.Headers.Add("Pragma", "no-cache");
-    context.Response.Headers.Add("Expires", "0");
+    context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+    context.Response.Headers["Pragma"] = "no-cache";
+    context.Response.Headers["Expires"] = "0";
     await context.Response.SendFileAsync("./wwwroot/index.html");
 });
 
-// GET /api/config - Devuelve si está en defaults
+// GET /api/config
 app.MapGet("/api/config", async (HttpContext context) =>
 {
     if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
@@ -140,11 +140,8 @@ app.MapGet("/api/config", async (HttpContext context) =>
     }
 
     context.Response.ContentType = "application/json";
-    context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
-    await context.Response.WriteAsJsonAsync(new
-    {
-        isDefault = IsDefaultCredentials()
-    });
+    context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+    await context.Response.WriteAsJsonAsync(new { isDefault = IsDefaultCredentials() });
 });
 
 // GET /api/status
@@ -159,7 +156,7 @@ app.MapGet("/api/status", async (HttpContext context) =>
 
     try
     {
-        context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
+        context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
 
         using var client = new HttpClient();
         client.Timeout = TimeSpan.FromSeconds(10);
@@ -244,7 +241,7 @@ app.MapPost("/api/update", async (HttpContext context) =>
         SaveTimestamp(DateTime.Now);
 
         context.Response.ContentType = "application/json";
-        context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
+        context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
         await context.Response.WriteAsJsonAsync(new
         {
             success = true,
@@ -290,7 +287,7 @@ app.MapGet("/api/update", async (HttpContext context) =>
         SaveTimestamp(DateTime.Now);
 
         context.Response.ContentType = "application/json";
-        context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
+        context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
         await context.Response.WriteAsJsonAsync(new
         {
             success = true,
@@ -329,7 +326,7 @@ app.MapPost("/api/disconnect", async (HttpContext context) =>
         SaveTimestamp(DateTime.Now);
 
         context.Response.ContentType = "application/json";
-        context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
+        context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
         await context.Response.WriteAsJsonAsync(new
         {
             success = true,
@@ -368,7 +365,7 @@ app.MapGet("/api/disconnect", async (HttpContext context) =>
         SaveTimestamp(DateTime.Now);
 
         context.Response.ContentType = "application/json";
-        context.Response.Headers.Add("Cache-Control", "no-cache, no-store, must-revalidate");
+        context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
         await context.Response.WriteAsJsonAsync(new
         {
             success = true,
@@ -397,9 +394,12 @@ app.MapPost("/api/credentials", async (HttpContext context) =>
 
     try
     {
-        var body = await context.Request.ReadAsFormAsync();
-        var newUser = body["user"].ToString();
-        var newPass = body["password"].ToString();
+        var body = await context.Request.ReadAsStringAsync();
+        using var doc = JsonDocument.Parse(body);
+        var root = doc.RootElement;
+
+        var newUser = root.GetProperty("user").GetString()?.Trim() ?? "";
+        var newPass = root.GetProperty("password").GetString()?.Trim() ?? "";
 
         if (string.IsNullOrEmpty(newUser) || string.IsNullOrEmpty(newPass))
         {

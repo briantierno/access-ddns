@@ -597,6 +597,33 @@
                 return;
             }
 
+            try {
+                const response = await fetch('/api/credentials', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user, password: pass })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('✅ Credenciales guardadas', 'success');
+                    document.getElementById('warningBox').classList.remove('show');
+                    document.getElementById('credentialsSection').style.display = 'none';
+                } else {
+                    showMessage('❌ ' + (data.error || 'Error'), 'error');
+                }
+            } catch (e) {
+                showMessage('❌ Error: ' + e.message, 'error');
+            }
+        }
+            const user = document.getElementById('newUser').value.trim();
+            const pass = document.getElementById('newPassword').value.trim();
+
+            if (!user || !pass) {
+                showMessage('❌ Usuario y contraseña requeridos', 'error');
+                return;
+            }
+
             const formData = new FormData();
             formData.append('user', user);
             formData.append('password', pass);
