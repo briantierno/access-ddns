@@ -288,10 +288,9 @@
         }
 
         .cmd-box {
-            background: rgba(0, 0, 0, 0.8);
             border: 1.5px solid rgba(255, 149, 0, 0.5);
             border-radius: 6px;
-            padding: 14px;
+            padding: 10px;
             font-size: 12px;
             font-family: 'Courier New', monospace;
             color: #ff9500;
@@ -300,7 +299,7 @@
             position: relative;
             background: linear-gradient(135deg, rgba(0, 0, 0, 0.9) 0%, rgba(255, 149, 0, 0.05) 100%);
             min-height: 50px;
-            padding-bottom: 44px;
+            padding-bottom: 40px;
         }
 
         .cmd-copy {
@@ -594,13 +593,25 @@
                 const currentIp = data.currentIp || '';
                 const dnsIp = data.dnsIp || '';
                 
-                if (wasJustUpdated || wasJustDisconnected) {
+                if (wasJustDisconnected) {
+                    if (currentIp !== dnsIp) {
+                        // Desconexión exitosa - ya no coinciden
+                        syncText.textContent = '⚠️ Desincronizado';
+                        syncText.style.color = '#ff9500';
+                        dnsLoader.classList.remove('show');
+                        wasJustDisconnected = false;
+                    } else {
+                        // Aún propagando, esperando a que cambien
+                        syncText.textContent = '⏳ Propagando...';
+                        syncText.style.color = '#ff9500';
+                        dnsLoader.classList.add('show');
+                    }
+                } else if (wasJustUpdated) {
                     if (currentIp === dnsIp && currentIp !== 'No resuelto' && currentIp !== 'Error') {
                         syncText.textContent = '✅ Sincronizado';
                         syncText.style.color = '#4caf50';
                         dnsLoader.classList.remove('show');
                         wasJustUpdated = false;
-                        wasJustDisconnected = false;
                     } else {
                         syncText.textContent = '⏳ Propagando...';
                         syncText.style.color = '#ff9500';
