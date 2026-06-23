@@ -10,8 +10,11 @@ using Microsoft.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Escuchar en todas las interfaces (0.0.0.0) en lugar de solo localhost
-builder.WebHost.UseUrls("http://0.0.0.0:5000");
+// Leer puerto desde variable de entorno o usar 5000 por defecto
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+
+// Escuchar en todas las interfaces en el puerto configurado
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 var app = builder.Build();
 
 var defaultUser = "admin";
