@@ -478,54 +478,54 @@
 
             <div class="cmd-group">
                 <label class="cmd-label">Linux / Mac / WSL (con -u)</label>
-                <div class="cmd-box">IP=$(curl -s https://ipinfo.io/ip) && curl -u <span id="cmdUser">admin</span>:<span id="cmdPass">password</span> "http://localhost:5000/api/update?ip=$IP"
-                    <div class="cmd-copy" onclick="copyCmdLinuxAuth(event)" title="Copiar">
+                <div class="cmd-box" id="cmd1">IP=$(curl -s https://ipinfo.io/ip) && curl -u <span id="cmdUser">admin</span>:<span id="cmdPass">password</span> "http://localhost:5000/api/update?ip=$IP"
+                    <button class="cmd-copy" onclick="copiarComando('cmd1')" title="Copiar">
                         <i class="fas fa-copy"></i>
                         <div class="cmd-copy-tooltip">Copy</div>
-                    </div>
+                    </button>
                 </div>
                 <div class="cmd-variant">O directamente (credenciales en URL):
-                    <div class="cmd-box" style="margin-top: 8px;">IP=$(curl -s https://ipinfo.io/ip) && curl "http://localhost:5000/api/update?ip=$IP&user=<span id="cmdUserUrl">admin</span>&pass=<span id="cmdPassUrl">password</span>"
-                    <div class="cmd-copy" onclick="copyCmdLinuxUrl(event)" title="Copiar">
+                    <div class="cmd-box" id="cmd2" style="margin-top: 8px;">IP=$(curl -s https://ipinfo.io/ip) && curl "http://localhost:5000/api/update?ip=$IP&user=<span id="cmdUserUrl">admin</span>&pass=<span id="cmdPassUrl">password</span>"
+                    <button class="cmd-copy" onclick="copiarComando('cmd2')" title="Copiar">
                         <i class="fas fa-copy"></i>
                         <div class="cmd-copy-tooltip">Copy</div>
-                    </div>
+                    </button>
                 </div>
                 </div>
             </div>
 
             <div class="cmd-group">
                 <label class="cmd-label">Windows PowerShell (con -u)</label>
-                <div class="cmd-box">$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl -u <span id="cmdUserPs">admin</span>:<span id="cmdPassPs">password</span> "http://localhost:5000/api/update?ip=$ip"
-                    <div class="cmd-copy" onclick="copyCmdWindowsAuth(event)" title="Copiar">
+                <div class="cmd-box" id="cmd3">$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl -u <span id="cmdUserPs">admin</span>:<span id="cmdPassPs">password</span> "http://localhost:5000/api/update?ip=$ip"
+                    <button class="cmd-copy" onclick="copiarComando('cmd3')" title="Copiar">
                         <i class="fas fa-copy"></i>
                         <div class="cmd-copy-tooltip">Copy</div>
-                    </div>
+                    </button>
                 </div>
                 <div class="cmd-variant">O directamente (credenciales en URL):
-                    <div class="cmd-box" style="margin-top: 8px;">$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl "http://localhost:5000/api/update?ip=$ip&user=<span id="cmdUserPsUrl">admin</span>&pass=<span id="cmdPassPsUrl">password</span>"
-                    <div class="cmd-copy" onclick="copyCmdWindowsUrl(event)" title="Copiar">
+                    <div class="cmd-box" id="cmd4" style="margin-top: 8px;">$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl "http://localhost:5000/api/update?ip=$ip&user=<span id="cmdUserPsUrl">admin</span>&pass=<span id="cmdPassPsUrl">password</span>"
+                    <button class="cmd-copy" onclick="copiarComando('cmd4')" title="Copiar">
                         <i class="fas fa-copy"></i>
                         <div class="cmd-copy-tooltip">Copy</div>
-                    </div>
+                    </button>
                 </div>
                 </div>
             </div>
 
             <div class="cmd-group">
                 <label class="cmd-label">Windows CMD / Bash / Universal (con -u)</label>
-                <div class="cmd-box">curl -u <span id="cmdUserSimple">admin</span>:<span id="cmdPassSimple">password</span> http://localhost:5000/api/update
-                    <div class="cmd-copy" onclick="copyCmdSimpleAuth(event)" title="Copiar">
+                <div class="cmd-box" id="cmd5">curl -u <span id="cmdUserSimple">admin</span>:<span id="cmdPassSimple">password</span> http://localhost:5000/api/update
+                    <button class="cmd-copy" onclick="copiarComando('cmd5')" title="Copiar">
                         <i class="fas fa-copy"></i>
                         <div class="cmd-copy-tooltip">Copy</div>
-                    </div>
+                    </button>
                 </div>
                 <div class="cmd-variant">O directamente (credenciales en URL):
-                    <div class="cmd-box" style="margin-top: 8px;">curl "http://localhost:5000/api/update?user=<span id="cmdUserSimpleUrl">admin</span>&pass=<span id="cmdPassSimpleUrl">password</span>"
-                    <div class="cmd-copy" onclick="copyCmdSimpleUrl(event)" title="Copiar">
+                    <div class="cmd-box" id="cmd6" style="margin-top: 8px;">curl "http://localhost:5000/api/update?user=<span id="cmdUserSimpleUrl">admin</span>&pass=<span id="cmdPassSimpleUrl">password</span>"
+                    <button class="cmd-copy" onclick="copiarComando('cmd6')" title="Copiar">
                         <i class="fas fa-copy"></i>
                         <div class="cmd-copy-tooltip">Copy</div>
-                    </div>
+                    </button>
                 </div>
                 </div>
             </div>
@@ -540,6 +540,44 @@
         let currentUser = 'admin';
         let wasJustUpdated = false;
         let wasJustDisconnected = false;
+
+        // Nueva función mejorada de copiar
+        function copyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showMessage('✅ Copiado al portapapeles', 'success');
+                }).catch(err => {
+                    console.error('Clipboard API error:', err);
+                    fallbackCopy(text);
+                });
+            } else {
+                fallbackCopy(text);
+            }
+        }
+
+        function fallbackCopy(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            textarea.style.pointerEvents = 'none';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showMessage('✅ Copiado al portapapeles', 'success');
+            } catch (err) {
+                console.error('Fallback copy error:', err);
+                showMessage('❌ No se pudo copiar', 'error');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function copiarComando(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.innerText.trim();
+            copyToClipboard(text);
+        }
 
         async function checkDefaults() {
             try {
@@ -578,7 +616,6 @@
 
         async function loadStatus() {
             try {
-                // Obtener IP pública del cliente (navegador)
                 const clientIpResponse = await fetch('https://ipinfo.io/ip');
                 const clientIp = await clientIpResponse.text().then(ip => ip.trim());
                 
@@ -598,13 +635,11 @@
                 
                 if (wasJustDisconnected) {
                     if (clientIp !== dnsIp) {
-                        // Desconexión exitosa - ya no coinciden
                         syncText.textContent = '⚠️ Desincronizado';
                         syncText.style.color = '#ff9500';
                         dnsLoader.classList.remove('show');
                         wasJustDisconnected = false;
                     } else {
-                        // Aún propagando, esperando a que cambien
                         syncText.textContent = '⏳ Propagando...';
                         syncText.style.color = '#ff9500';
                         dnsLoader.classList.add('show');
@@ -747,48 +782,6 @@
             setTimeout(() => {
                 msgEl.className = 'message';
             }, 4000);
-        }
-
-        function copyCmdLinuxAuth(e) {
-            e.stopPropagation();
-            const text = 'IP=$(curl -s https://ipinfo.io/ip) && curl -u ' + currentUser + ':password "http://localhost:5000/api/update?ip=$IP"';
-            navigator.clipboard.writeText(text);
-            showMessage('✅ Copiado al portapapeles', 'success');
-        }
-
-        function copyCmdLinuxUrl(e) {
-            e.stopPropagation();
-            const text = 'IP=$(curl -s https://ipinfo.io/ip) && curl "http://localhost:5000/api/update?ip=$IP&user=' + currentUser + '&pass=password"';
-            navigator.clipboard.writeText(text);
-            showMessage('✅ Copiado al portapapeles', 'success');
-        }
-
-        function copyCmdWindowsAuth(e) {
-            e.stopPropagation();
-            const text = '$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl -u ' + currentUser + ':password "http://localhost:5000/api/update?ip=$ip"';
-            navigator.clipboard.writeText(text);
-            showMessage('✅ Copiado al portapapeles', 'success');
-        }
-
-        function copyCmdWindowsUrl(e) {
-            e.stopPropagation();
-            const text = '$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl "http://localhost:5000/api/update?ip=$ip&user=' + currentUser + '&pass=password"';
-            navigator.clipboard.writeText(text);
-            showMessage('✅ Copiado al portapapeles', 'success');
-        }
-
-        function copyCmdSimpleAuth(e) {
-            e.stopPropagation();
-            const text = 'curl -u ' + currentUser + ':password http://localhost:5000/api/update';
-            navigator.clipboard.writeText(text);
-            showMessage('✅ Copiado al portapapeles', 'success');
-        }
-
-        function copyCmdSimpleUrl(e) {
-            e.stopPropagation();
-            const text = 'curl "http://localhost:5000/api/update?user=' + currentUser + '&pass=password"';
-            navigator.clipboard.writeText(text);
-            showMessage('✅ Copiado al portapapeles', 'success');
         }
 
         checkDefaults();
