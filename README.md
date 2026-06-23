@@ -1,280 +1,256 @@
-# Access DDNS - Actualizador de DNS Dinámico
+# ACCESS DDNS
 
-Aplicación .NET Core para actualizar automáticamente tu dominio dinámico en CDmon y permitir acceso remoto a través de MikroTik.
+Actualiza dinámicamente registros DNS en CDmon para mantener un dominio apuntando a tu IP pública actual.
 
-## 🎯 Características
+## **Instalación y Configuración**
 
-- ✅ **Servidor minimalista** - ASP.NET Core en puerto 80/443
-- ✅ **Interfaz web moderna** - Dark mode con naranja + púrpura
-- ✅ **IP pública visible** - Muestra tu IP actual de forma destacada
-- ✅ **Auto-refresh** - Actualización automática cada 5 segundos
-- ✅ **Validación segura** - Basic Auth + Query params
-- ✅ **Servicio Windows** - Instalar como servicio permanente
-- ✅ **Terminal compatible** - curl, wget, PowerShell
-- ✅ **Compilable .exe** - Todo en un archivo ejecutable
+### **1. Requisitos**
+- .NET 8 SDK instalado
+- ASP.NET Core Runtime
 
-## 🚀 Compilación
+### **2. Configurar `appsettings.json`**
 
-### Requisitos
-
-- .NET 8 SDK (https://dotnet.microsoft.com/download)
-- Windows 10+
-
-### Paso 1: Descargar el proyecto
-
-```bash
-git clone https://github.com/briantierno/access-ddns-dotnet.git
-cd access-ddns-dotnet
-```
-
-### Paso 2: Compilar para Windows
-
-```bash
-dotnet publish -c Release -r win-x64 --self-contained
-```
-
-Se creará: `bin/Release/net8.0/win-x64/publish/access-ddns.exe`
-
-### Paso 3 (Alternativa): Compilar como .exe simple
-
-```bash
-dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true --self-contained
-```
-
-## 💻 Instalación como Servicio Windows
-
-### Opción A: Instalación automática (recomendado)
-
-Crea un archivo `install.bat`:
-
-```batch
-@echo off
-cd /D "%~dp0"
-sc create AccessDDNS binPath= "%CD%\access-ddns.exe" start= auto
-sc start AccessDDNS
-echo Servicio instalado. Abre https://localhost/access
-pause
-```
-
-Ejecuta como Administrador.
-
-### Opción B: Instalación manual PowerShell
-
-```powershell
-$serviceName = "AccessDDNS"
-$exePath = "C:\ruta\a\access-ddns.exe"
-
-# Crea el servicio
-New-Service -Name $serviceName -BinaryPathName $exePath -StartupType Automatic
-
-# Inicia el servicio
-Start-Service -Name $serviceName
-```
-
-### Desinstalar el servicio
-
-```powershell
-Stop-Service -Name AccessDDNS
-Remove-Service -Name AccessDDNS
-```
-
-## 🔧 Configuración
-
-### Variables de Entorno
-
-```
-ADMIN_USER=admin
-ADMIN_PASS_MD5=5f4dcc3b5aa765d61d8327deb882cf99
-```
-
-Generar hash MD5:
-```bash
-# Linux/Mac
-echo -n "tupassword" | md5sum
-
-# Windows PowerShell
-$String = "tupassword"
-$MD5 = [System.Security.Cryptography.MD5]::Create()
-$Hash = [System.Convert]::ToHexString($MD5.ComputeHash([System.Text.Encoding]::UTF8.GetBytes($String)))
-Write-Host $Hash
-```
-
-## 🌐 Uso
-
-### Desde navegador
-
-```
-https://dmz.ar/access
-```
-
-Automáticamente:
-1. Detecta tu IP pública
-2. Actualiza en CDmon
-3. Muestra estado en tiempo real
-
-### Desde terminal (Linux/Mac)
-
-```bash
-IP=$(curl -s https://ipinfo.io/ip)
-curl -u admin:password "https://dmz.ar/access/api/update?ip=$IP"
-```
-
-### Desde terminal (Windows PowerShell)
-
-```powershell
-$ip = (Invoke-WebRequest https://ipinfo.io/ip).Content
-curl -u admin:password "https://dmz.ar/access/api/update?ip=$ip"
-```
-
-### Con credenciales en URL
-
-```bash
-curl "https://dmz.ar/access/api/update?user=admin&pass=password&ip=200.100.50.25"
-```
-
-### Con wget
-
-```bash
-IP=$(curl -s https://ipinfo.io/ip)
-wget --user=admin --password=password "https://dmz.ar/access/api/update?ip=$IP" -O -
-```
-
-## 🔐 Configuración en MikroTik
-
-### 1. Port forwarding a servidor Windows
-
-```
-/ip firewall nat add chain=dstnat dst-address=dmz.ar dst-port=80 protocol=tcp \
-  to-addresses=192.168.1.100 to-ports=80 comment="Access DDNS"
-
-/ip firewall nat add chain=dstnat dst-address=dmz.ar dst-port=443 protocol=tcp \
-  to-addresses=192.168.1.100 to-ports=443 comment="Access DDNS HTTPS"
-```
-
-(Reemplaza `192.168.1.100` con la IP de tu servidor Windows)
-
-### 2. Agregar dominio a firewall address-list
-
-```
-/ip firewall address-list add list=ACCESO address=access.dmz.ar comment="IP dinámica"
-```
-
-### 3. Usar en reglas de firewall
-
-```
-/ip firewall filter add chain=forward src-address-list=ACCESO action=accept
-```
-
-## 🔒 SSL/HTTPS
-
-### Generar certificado Let's Encrypt en Windows
-
-```bash
-# Instalar Certbot
-choco install certbot
-
-# Generar certificado
-certbot certonly --standalone -d dmz.ar -d access.dmz.ar
-```
-
-Los certificados estarán en:
-```
-C:\Certbot\live\dmz.ar\
-```
-
-## 📊 API Endpoints
-
-### GET `/access`
-Retorna la página HTML principal.
-
-```
-https://dmz.ar/access
-```
-
-### GET `/api/status`
-Retorna estado actual en JSON.
+Edita el archivo `appsettings.json` en la raíz del proyecto:
 
 ```json
 {
-  "currentIp": "200.100.50.25",
-  "lastUpdated": "2026-06-22 02:30:15",
-  "status": "ok"
+  "AppSettings": {
+    "Port": 5000,
+    "UseHttps": false,
+    "CertificatePath": "./cert.pfx",
+    "CertificatePassword": "",
+    "Credentials": {
+      "DefaultUser": "admin",
+      "DefaultPassword": "password"
+    },
+    "DNS": {
+      "Domain": "access.dmz.ar",
+      "Provider": "cdmon"
+    },
+    "CDmon": {
+      "Endpoint": "https://dinamico.cdmon.org/onlineService.php",
+      "User": "tu_usuario_cdmon",
+      "PasswordHash": "hash_md5_tu_password",
+      "DisconnectIP": "1.1.1.1"
+    }
+  }
 }
 ```
 
-### GET/POST `/api/update`
-Actualiza el DNS en CDmon.
-
-```
-https://dmz.ar/access/api/update?user=admin&pass=password&ip=200.100.50.25
-```
-
-**Con Basic Auth:**
-```
-curl -u admin:password "https://dmz.ar/access/api/update?ip=200.100.50.25"
-```
-
-## 🐛 Troubleshooting
-
-**Error: "Port 80 already in use"**
-```powershell
-# Encuentra qué usa el puerto
-netstat -ano | findstr :80
-
-# Mata el proceso
-taskkill /PID <PID> /F
-```
-
-**Credenciales inválidas**
-- Verifica que el hash MD5 es correcto
-- Asegúrate de usar `echo -n` (sin newline) para generar el hash
-
-**No se resuelve access.dmz.ar**
-- Verifica DNS: `nslookup access.dmz.ar`
-- Comprueba que CDmon tiene la IP actualizada
-- Fuerza refresh DNS en MikroTik: `/ip dns cache flush`
-
-## 📝 Logs
-
-Los logs de .NET Core se guardan en:
-```
-C:\Users\<Usuario>\AppData\Local\Temp\
-```
-
-O ejecuta con:
-```powershell
-dotnet run --project access-ddns.csproj
-```
-
-## 📦 Estructura
-
-```
-access-ddns-dotnet/
-├── Program.cs              # Servidor ASP.NET Core
-├── wwwroot/
-│   └── index.html         # UI web
-├── access-ddns.csproj     # Proyecto .NET
-└── README.md              # Este archivo
-```
-
-## 🔄 Actualización
-
-Para actualizar a nuevas versiones:
-
-1. Detén el servicio: `net stop AccessDDNS`
-2. Descarga nueva versión
-3. Recompila: `dotnet publish -c Release -r win-x64 --self-contained`
-4. Reemplaza el .exe
-5. Inicia el servicio: `net start AccessDDNS`
-
-## 📄 Licencia
-
-MIT
-
-## 🤝 Soporte
-
-Para problemas o preguntas, abre un issue en GitHub.
+**Parámetros:**
+- `Port`: Puerto de escucha (default: 5000)
+- `UseHttps`: Habilitar HTTPS (requiere certificado)
+- `CertificatePath`: Ruta al certificado .pfx
+- `CertificatePassword`: Password del certificado (vacío si no tiene)
+- `Domain`: Tu dominio DNS a resolver
+- `PasswordHash`: Hash MD5 de tu contraseña CDmon
+- `DisconnectIP`: IP a la que resetear en disconnect (default: 1.1.1.1)
 
 ---
 
-**Hecho con ❤️ para actualizaciones de DNS dinámicas en MikroTik**
+## **Ejecución**
+
+### **Puerto por defecto (5000)**
+```bash
+dotnet watch run
+```
+
+### **Puerto custom (variable de entorno)**
+
+**Windows (CMD):**
+```cmd
+set PORT=3000 && dotnet watch run
+```
+
+**Windows (PowerShell):**
+```powershell
+$env:PORT=3000; dotnet watch run
+```
+
+**Mac/Linux:**
+```bash
+PORT=3000 dotnet watch run
+```
+
+---
+
+## **Acceso a la interfaz**
+
+Una vez iniciado, accede desde tu PC o desde la red:
+
+### **Desde la misma PC:**
+```
+http://localhost:5000
+http://localhost:5000/access
+```
+
+### **Desde otra PC en la red:**
+```
+http://[TU_IP_LOCAL]:5000
+http://[TU_IP_LOCAL]:5000/access
+```
+
+Ejemplo: `http://192.168.1.100:5000`
+
+### **Sin puerto (si usas puerto 80):**
+```
+http://192.168.1.100
+```
+
+---
+
+## **HTTPS (Puerto 443)**
+
+### **Generar certificado autofirmado**
+
+**Windows (PowerShell como Admin):**
+```powershell
+$cert = New-SelfSignedCertificate -CertStoreLocation "cert:\LocalMachine\My" `
+  -DnsName "access.dmz.ar" -FriendlyName "Access DDNS" -NotAfter (Get-Date).AddYears(1)
+
+Export-PfxCertificate -Cert $cert -FilePath "cert.pfx" -Password (ConvertTo-SecureString -String "password" -AsPlainText -Force)
+```
+
+**Linux/Mac:**
+```bash
+openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes
+openssl pkcs12 -export -out cert.pfx -inkey key.pem -in cert.pem -password pass:password
+```
+
+### **Configurar en appsettings.json:**
+```json
+{
+  "AppSettings": {
+    "Port": 443,
+    "UseHttps": true,
+    "CertificatePath": "./cert.pfx",
+    "CertificatePassword": "password"
+  }
+}
+```
+
+---
+
+## **Puerto 80 en Windows**
+
+Para usar puerto 80 sin ser administrador, usa `netsh`:
+
+```cmd
+netsh http add urlacl url=http://+:80/ user=DOMAIN\username listen=yes
+```
+
+Reemplaza `DOMAIN\username` con tu usuario.
+
+O si quieres permitir a todos:
+```cmd
+netsh http add urlacl url=http://+:80/ user=EVERYONE listen=yes
+```
+
+Luego configura en `appsettings.json`:
+```json
+{
+  "AppSettings": {
+    "Port": 80
+  }
+}
+```
+
+---
+
+## **Puerto <1024 en Linux**
+
+En Linux, puertos menores a 1024 requieren `sudo`. Dos opciones:
+
+### **Opción 1: Usar sudo**
+```bash
+sudo PORT=80 dotnet run
+```
+
+### **Opción 2: Redirigir con iptables**
+```bash
+sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 5000
+```
+
+---
+
+## **APIs disponibles**
+
+### **GET /api/config**
+```bash
+curl -u admin:password http://localhost:5000/api/config
+```
+
+### **GET /api/status**
+```bash
+curl -u admin:password http://localhost:5000/api/status
+```
+
+### **POST /api/update**
+```bash
+curl -u admin:password -X POST "http://localhost:5000/api/update?ip=200.1.1.1"
+```
+
+### **POST /api/disconnect**
+```bash
+curl -u admin:password -X POST http://localhost:5000/api/disconnect
+```
+
+### **POST /api/credentials**
+```bash
+curl -u admin:password -X POST http://localhost:5000/api/credentials \
+  -H "Content-Type: application/json" \
+  -d '{"user":"newuser","password":"newpass"}'
+```
+
+---
+
+## **Variables de entorno**
+
+| Variable | Descripción | Ejemplo |
+|----------|-------------|---------|
+| `PORT` | Puerto de escucha | `PORT=8080` |
+
+Sobrescribe el valor en `appsettings.json`.
+
+---
+
+## **Solución de problemas**
+
+### **No conecta desde otra PC**
+- Verifica que el firewall permita el puerto (ver comando arriba)
+- Usa la IP local (ej: `192.168.1.100`) no `localhost`
+- Comprueba `netstat -an` que el puerto esté escuchando
+
+### **HTTPS no funciona**
+- Verifica que `cert.pfx` existe en la raíz del proyecto
+- Comprueba la password del certificado
+- En navegador, acepta el certificado autofirmado
+
+### **No sincroniza con DNS**
+- Comprueba que CDmon esté actualizado
+- Espera 60 segundos (propagación DNS)
+- Usa el comando `/api/disconnect` y luego `/api/update`
+
+---
+
+## **Estructura de archivos**
+
+```
+access-ddns/
+├── Program.cs
+├── AppSettings.cs
+├── appsettings.json          ← Configuración
+├── credentials.json          ← Credenciales (auto-generado)
+├── lastupdate.json           ← Timestamp (auto-generado)
+├── wwwroot/
+│   └── index.html           ← Interfaz web
+├── README.md
+└── .gitignore
+```
+
+---
+
+## **Licencia**
+
+MIT
+
