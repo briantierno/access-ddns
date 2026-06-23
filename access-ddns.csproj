@@ -5,13 +5,17 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <OutputType>Exe</OutputType>
-    <PublishSingleFile>true</PublishSingleFile>
-    <SelfContained>true</SelfContained>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" Version="8.0.0" />
+  </ItemGroup>
+
+  <!-- Incluir wwwroot en la publicación -->
+  <ItemGroup>
+    <Content Include="wwwroot/**" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="access-ddns.runtimeconfig.json" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
