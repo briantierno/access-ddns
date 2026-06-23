@@ -41,10 +41,8 @@ var credFile = "./credentials.json";
 var timestampFile = "./lastupdate.json";
 var autoResetHours = 6;
 
-string currentUser = appSettings.Credentials.DefaultUser;
-string currentPassMd5 = GetMd5Hash(appSettings.Credentials.DefaultPassword);
-
-void LoadCredentials()
+// Obtener credenciales actuales (lee del archivo cada vez, sin caché)
+(string user, string passMd5) GetCurrentCredentials()
 {
     try
     {
@@ -52,15 +50,17 @@ void LoadCredentials()
         {
             var json = File.ReadAllText(credFile);
             var doc = JsonDocument.Parse(json);
-            currentUser = doc.RootElement.GetProperty("user").GetString() ?? appSettings.Credentials.DefaultUser;
-            currentPassMd5 = doc.RootElement.GetProperty("passMd5").GetString() ?? GetMd5Hash(appSettings.Credentials.DefaultPassword);
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Credenciales cargadas: {currentUser}");
+            var user = doc.RootElement.GetProperty("user").GetString() ?? appSettings.Credentials.DefaultUser;
+            var passMd5 = doc.RootElement.GetProperty("passMd5").GetString() ?? GetMd5Hash(appSettings.Credentials.DefaultPassword);
+            return (user, passMd5);
         }
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Error cargando credenciales: {ex.Message}");
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Error leyendo credenciales: {ex.Message}");
     }
+    
+    return (appSettings.Credentials.DefaultUser, GetMd5Hash(appSettings.Credentials.DefaultPassword));
 }
 
 void SaveCredentials(string user, string passMd5)
@@ -69,8 +69,6 @@ void SaveCredentials(string user, string passMd5)
     {
         var data = new { user = user, passMd5 = passMd5 };
         File.WriteAllText(credFile, JsonSerializer.Serialize(data));
-        currentUser = user;
-        currentPassMd5 = passMd5;
         Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Credenciales guardadas: {user}");
     }
     catch (Exception ex)
@@ -81,6 +79,7 @@ void SaveCredentials(string user, string passMd5)
 
 bool IsDefaultCredentials()
 {
+    var (currentUser, currentPassMd5) = GetCurrentCredentials();
     return currentUser == appSettings.Credentials.DefaultUser && 
            currentPassMd5 == GetMd5Hash(appSettings.Credentials.DefaultPassword);
 }
@@ -94,6 +93,8 @@ bool ValidateAuth(HttpContext context, out string user)
 
     try
     {
+        var (currentUser, currentPassMd5) = GetCurrentCredentials();
+        
         var base64 = authHeader.Substring(6);
         var decoded = Encoding.UTF8.GetString(Convert.FromBase64String(base64));
         var parts = decoded.Split(':');
@@ -134,13 +135,12 @@ static string GetMd5Hash(string input)
     }
 }
 
-LoadCredentials();
 app.UseStaticFiles();
 
 // Mapear ruta raíz (/) y /access a la misma acción
 Func<HttpContext, System.Threading.Tasks.Task> serveAccess = async (HttpContext context) =>
 {
-    if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
+    if (appSettings.RequireAuthentication && !IsDefaultCredentials() && !ValidateAuth(context, out _))
     {
         context.Response.StatusCode = 401;
         context.Response.Headers["WWW-Authenticate"] = $"Basic realm=\"{appSettings.DNS.Domain}\"";
@@ -160,13 +160,14 @@ app.MapGet("/access", serveAccess);
 
 app.MapGet("/api/config", async (HttpContext context) =>
 {
-    if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
+    if (appSettings.RequireAuthentication && !IsDefaultCredentials() && !ValidateAuth(context, out _))
     {
         context.Response.StatusCode = 401;
         await context.Response.WriteAsJsonAsync(new { error = "Unauthorized" });
         return;
     }
 
+    var (currentUser, _) = GetCurrentCredentials();
     context.Response.ContentType = "application/json";
     context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
     await context.Response.WriteAsJsonAsync(new { isDefault = IsDefaultCredentials(), user = currentUser });
@@ -174,7 +175,7 @@ app.MapGet("/api/config", async (HttpContext context) =>
 
 app.MapGet("/api/status", async (HttpContext context) =>
 {
-    if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
+    if (appSettings.RequireAuthentication && !IsDefaultCredentials() && !ValidateAuth(context, out _))
     {
         context.Response.StatusCode = 401;
         await context.Response.WriteAsJsonAsync(new { error = "Unauthorized" });
@@ -249,7 +250,7 @@ app.MapGet("/api/status", async (HttpContext context) =>
 
 app.MapPost("/api/update", async (HttpContext context) =>
 {
-    if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
+    if (appSettings.RequireAuthentication && !IsDefaultCredentials() && !ValidateAuth(context, out _))
     {
         context.Response.StatusCode = 401;
         await context.Response.WriteAsJsonAsync(new { error = "Unauthorized" });
@@ -287,7 +288,7 @@ app.MapPost("/api/update", async (HttpContext context) =>
 
 app.MapGet("/api/update", async (HttpContext context) =>
 {
-    if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
+    if (appSettings.RequireAuthentication && !IsDefaultCredentials() && !ValidateAuth(context, out _))
     {
         context.Response.StatusCode = 401;
         await context.Response.WriteAsJsonAsync(new { error = "Unauthorized" });
@@ -325,7 +326,7 @@ app.MapGet("/api/update", async (HttpContext context) =>
 
 app.MapPost("/api/disconnect", async (HttpContext context) =>
 {
-    if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
+    if (appSettings.RequireAuthentication && !IsDefaultCredentials() && !ValidateAuth(context, out _))
     {
         context.Response.StatusCode = 401;
         await context.Response.WriteAsJsonAsync(new { error = "Unauthorized" });
@@ -357,7 +358,7 @@ app.MapPost("/api/disconnect", async (HttpContext context) =>
 
 app.MapGet("/api/disconnect", async (HttpContext context) =>
 {
-    if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
+    if (appSettings.RequireAuthentication && !IsDefaultCredentials() && !ValidateAuth(context, out _))
     {
         context.Response.StatusCode = 401;
         await context.Response.WriteAsJsonAsync(new { error = "Unauthorized" });
@@ -389,7 +390,7 @@ app.MapGet("/api/disconnect", async (HttpContext context) =>
 
 app.MapPost("/api/credentials", async (HttpContext context) =>
 {
-    if (!IsDefaultCredentials() && !ValidateAuth(context, out _))
+    if (appSettings.RequireAuthentication && !IsDefaultCredentials() && !ValidateAuth(context, out _))
     {
         context.Response.StatusCode = 401;
         await context.Response.WriteAsJsonAsync(new { error = "Unauthorized" });
@@ -434,6 +435,7 @@ Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ACCESS DDNS - Iniciado");
 Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Puerto: {appSettings.Port}");
 Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Dominio: {appSettings.DNS.Domain}");
 Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Protocolo: {(appSettings.UseHttps ? "HTTPS" : "HTTP")}");
+Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Autenticación: {(appSettings.RequireAuthentication ? "Habilitada" : "Deshabilitada")}");
 Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ========================================");
 
 await app.RunAsync();
