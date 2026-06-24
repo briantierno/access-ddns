@@ -13,6 +13,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Cargar configuración desde appsettings.json
 var appSettings = builder.Configuration.GetSection("AppSettings").Get<AppSettings>() ?? new AppSettings();
 
+// Registrar servicios
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton(appSettings);
+builder.Services.AddHostedService<AutoResetService>();
+
 // Leer puerto desde variable de entorno (sobrescribe appsettings.json)
 if (int.TryParse(Environment.GetEnvironmentVariable("PORT"), out int envPort))
 {
@@ -429,6 +434,107 @@ app.MapPost("/api/credentials", async (HttpContext context) =>
         await context.Response.WriteAsJsonAsync(new { error = ex.Message });
     }
 });
+
+app.MapGet("/api/settings", async (HttpContext context) =>
+{
+    if (appSettings.RequireAuthentication && !IsDefaultCredentials() && !ValidateAuth(context, out _))
+    {
+        context.Response.StatusCode = 401;
+        await context.Response.WriteAsJsonAsync(new { error = "Unauthorized" });
+        return;
+    }
+
+    try
+    {
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new 
+        { 
+            autoResetHours = appSettings.AutoResetHours,
+            domain = appSettings.DNS.Domain,
+            requireAuthentication = appSettings.RequireAuthentication
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Error /api/settings: {ex.Message}");
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new { error = ex.Message });
+    }
+});
+
+app.MapPost("/api/settings", async (HttpContext context) =>
+{
+    if (appSettings.RequireAuthentication && !IsDefaultCredentials() && !ValidateAuth(context, out _))
+    {
+        context.Response.StatusCode = 401;
+        await context.Response.WriteAsJsonAsync(new { error = "Unauthorized" });
+        return;
+    }
+
+    try
+    {
+        context.Request.EnableBuffering();
+        using var reader = new StreamReader(context.Request.Body);
+        var body = await reader.ReadToEndAsync();
+        using var doc = JsonDocument.Parse(body);
+        var root = doc.RootElement;
+
+        if (root.TryGetProperty("autoResetHours", out var hoursElement) && hoursElement.TryGetInt32(out int hours))
+        {
+            if (hours > 0 && hours <= 720) // Max 30 días
+            {
+                appSettings.AutoResetHours = hours;
+                UpdateAppsettings("AutoResetHours", hours);
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Auto-reset cambiado a {hours} horas");
+            }
+            else
+            {
+                context.Response.StatusCode = 400;
+                await context.Response.WriteAsJsonAsync(new { error = "AutoResetHours debe estar entre 1 y 720" });
+                return;
+            }
+        }
+
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new { success = true, message = "Configuración actualizada", autoResetHours = appSettings.AutoResetHours });
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Error /api/settings POST: {ex.Message}");
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new { error = ex.Message });
+    }
+});
+
+void UpdateAppsettings(string key, object value)
+{
+    try
+    {
+        var appsettingsPath = "./appsettings.json";
+        if (File.Exists(appsettingsPath))
+        {
+            var json = File.ReadAllText(appsettingsPath);
+            using var doc = JsonDocument.Parse(json);
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            var dict = JsonSerializer.Deserialize<Dictionary<string, object>>(json) ?? new Dictionary<string, object>();
+            
+            if (!dict.ContainsKey("AppSettings"))
+                dict["AppSettings"] = new Dictionary<string, object>();
+            
+            var appSettingsDict = JsonSerializer.Deserialize<Dictionary<string, object>>(dict["AppSettings"].ToString() ?? "{}") ?? new Dictionary<string, object>();
+            appSettingsDict[key] = value;
+            dict["AppSettings"] = appSettingsDict;
+            
+            File.WriteAllText(appsettingsPath, JsonSerializer.Serialize(dict, options));
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] Error actualizando appsettings.json: {ex.Message}");
+    }
+}
 
 Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ========================================");
 Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ACCESS DDNS - Iniciado");

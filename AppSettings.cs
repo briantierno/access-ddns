@@ -3,6 +3,7 @@ public class AppSettings
     public int Port { get; set; } = 5000;
     public bool UseHttps { get; set; } = false;
     public bool RequireAuthentication { get; set; } = true;
+    public int AutoResetHours { get; set; } = 6;
     public string CertificatePath { get; set; } = "./cert.pfx";
     public string CertificatePassword { get; set; } = "";
     public CredentialsConfig Credentials { get; set; } = new();
