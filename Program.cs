@@ -255,6 +255,7 @@ app.MapGet("/api/pwa-status", async (HttpContext context) =>
 });
 
 
+app.MapGet("/api/config", async (HttpContext context) =>
 {
     if (appSettings.RequireAuthentication && !IsDefaultCredentials() && !ValidateAuth(context, out _))
     {
