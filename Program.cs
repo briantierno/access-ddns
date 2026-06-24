@@ -44,7 +44,6 @@ var app = builder.Build();
 
 var credFile = "./credentials.json";
 var timestampFile = "./lastupdate.json";
-var autoResetHours = 6;
 
 // Obtener credenciales actuales (lee del archivo cada vez, sin caché)
 (string user, string passMd5) GetCurrentCredentials()

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
@@ -8,20 +9,19 @@ using Microsoft.Extensions.Hosting;
 
 public class AutoResetService : IHostedService
 {
-    private Timer _timer;
+    private Timer? _timer;
     private readonly string _timestampFile = "./lastupdate.json";
     private readonly AppSettings _appSettings;
-    private readonly IHttpClientFactory _httpClientFactory;
 
-    public AutoResetService(AppSettings appSettings, IHttpClientFactory httpClientFactory)
+    public AutoResetService(AppSettings appSettings)
     {
         _appSettings = appSettings;
-        _httpClientFactory = httpClientFactory;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] AutoResetService iniciado - Auto-reset cada {_appSettings.AutoResetHours} horas, chequeo cada 1 minuto");
+        var autoResetHours = GetAutoResetHoursFromFile();
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] AutoResetService iniciado - Auto-reset cada {autoResetHours} horas, chequeo cada 1 minuto");
         
         // Chequear cada 1 minuto si hay que resetear
         _timer = new Timer(CheckAndReset, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
@@ -36,7 +36,7 @@ public class AutoResetService : IHostedService
         return Task.CompletedTask;
     }
 
-    private async void CheckAndReset(object state)
+    private async void CheckAndReset(object? state)
     {
         try
         {
@@ -44,11 +44,10 @@ public class AutoResetService : IHostedService
             
             if (lastUpdate == null)
             {
-                // Nunca se actualizó, no resetear aún
                 return;
             }
 
-            int autoResetHours = GetAutoResetHours();
+            int autoResetHours = GetAutoResetHoursFromFile();
             DateTime nextReset = lastUpdate.Value.AddHours(autoResetHours);
             
             if (DateTime.Now >= nextReset)
@@ -122,6 +121,26 @@ public class AutoResetService : IHostedService
             return lastUpdateStr != null ? DateTime.Parse(lastUpdateStr) : null;
         }
         catch { return null; }
+    }
+
+    private int GetAutoResetHoursFromFile()
+    {
+        try
+        {
+            if (File.Exists("./appsettings.json"))
+            {
+                var json = File.ReadAllText("./appsettings.json");
+                var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("AppSettings", out var appSettingsElement) &&
+                    appSettingsElement.TryGetProperty("AutoResetHours", out var hoursElement) &&
+                    hoursElement.TryGetInt32(out int hours))
+                {
+                    return hours;
+                }
+            }
+        }
+        catch { }
+        return 6; // Default
     }
 
     private void SaveTimestamp(DateTime dt)
