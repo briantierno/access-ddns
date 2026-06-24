@@ -48,10 +48,21 @@ public class AutoResetService : IHostedService
                 return;
             }
 
-            DateTime nextReset = lastUpdate.Value.AddHours(_appSettings.AutoResetHours);
+            int autoResetHours = GetAutoResetHours();
+            DateTime nextReset = lastUpdate.Value.AddHours(autoResetHours);
             
             if (DateTime.Now >= nextReset)
             {
+                // Verificar IP actual en DNS antes de resetear
+                string currentDnsIp = await GetCurrentDnsIp();
+                
+                // Si ya está en 1.1.1.1, no resetear de nuevo
+                if (currentDnsIp == _appSettings.CDmon.DisconnectIP)
+                {
+                    Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ⏸️ IP ya está en {_appSettings.CDmon.DisconnectIP}, no resetear");
+                    return;
+                }
+                
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ⚠️ AUTO-RESET ACTIVADO - Reseteando IP a {_appSettings.CDmon.DisconnectIP}");
                 
                 await ExecuteReset();
@@ -63,6 +74,20 @@ public class AutoResetService : IHostedService
         {
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] ERROR en AutoResetService: {ex.Message}");
         }
+    }
+
+    private async Task<string> GetCurrentDnsIp()
+    {
+        try
+        {
+            var ipHostInfo = await Dns.GetHostEntryAsync(_appSettings.DNS.Domain);
+            if (ipHostInfo.AddressList.Length > 0)
+            {
+                return ipHostInfo.AddressList[0].ToString();
+            }
+        }
+        catch { }
+        return "No resuelto";
     }
 
     private async Task ExecuteReset()
