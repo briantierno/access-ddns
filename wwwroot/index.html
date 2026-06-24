@@ -7,6 +7,18 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="manifest" content="/manifest.json">
+    <meta name="theme-color" content="#ff9500">
+    <meta name="description" content="Actualizador dinámico de DNS para router MikroTik">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Access DDNS">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -1022,6 +1034,15 @@
         checkDefaults();
         loadStatus();
         setInterval(loadStatus, 3000);
+
+        // Register Service Worker for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('✅ SW registered:', reg))
+                    .catch(err => console.log('❌ SW registration failed:', err));
+            });
+        }
     </script>
 </body>
 </html>
