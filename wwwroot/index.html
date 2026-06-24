@@ -742,8 +742,16 @@
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
+            console.log('✅ Install prompt disponible - mostrar botón en modal');
             document.getElementById('installPromptSection').style.display = 'block';
-            console.log('✅ Install prompt disponible - mostrar botón');
+            
+            // Mostrar el prompt automáticamente después de 3 segundos
+            setTimeout(() => {
+                if (deferredPrompt) {
+                    console.log('🔔 Mostrando install prompt automáticamente');
+                    deferredPrompt.prompt();
+                }
+            }, 3000);
         });
 
         // Instalar app
