@@ -11,9 +11,9 @@ using System;
 using System.Reflection;
 
 [assembly: System.Reflection.AssemblyCompanyAttribute("access-ddns")]
-[assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+44cfdcf926658a86dcd625c4ee9e83c18d1aa27f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8a1b9b59bcc634cba724ed4e52eb10c9e558b02c")]
 [assembly: System.Reflection.AssemblyProductAttribute("access-ddns")]
 [assembly: System.Reflection.AssemblyTitleAttribute("access-ddns")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

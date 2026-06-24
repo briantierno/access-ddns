@@ -49,21 +49,20 @@
         .header h1 {
             font-size: 32px;
             flex: 1;
-            background:#999; /* linear-gradient(135deg, #ff9500 0%, #9c27b0 100%); */
+            background: linear-gradient(135deg, #ff9500 0%, #9c27b0 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             letter-spacing: 2px;
-            -webkit-text-stroke: 0.2px #ff9500;
             margin: 0;
         }
 
         .settings-btn {
             background: rgba(255, 149, 0, 0.2);
             border: 1px solid #ff9500;
-            color: #999;
-            width: 34px;
-            height: 32px;
+            color: #ff9500;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             cursor: pointer;
             display: flex;
@@ -573,7 +572,7 @@
 
         <div class="section">
             <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleConsole()">
-                <h3 style="margin: 0;"><i style="color: #ff9500;" class="fas fa-terminal"></i> &nbsp;Comandos Útiles</h3>
+                <h3 style="margin: 0;">📡 Comandos Útiles</h3>
                 <i class="fas fa-chevron-down" id="consoleToggleIcon" style="color: #ff9500; transition: transform 0.3s; transform: rotate(0deg);"></i>
             </div>
             <div id="consoleContent" style="display: none; transition: all 0.3s;">
@@ -983,7 +982,7 @@
 
         checkDefaults();
         loadStatus();
-        setInterval(loadStatus, 1000);
+        setInterval(loadStatus, 3000);
     </script>
 </body>
 </html>
