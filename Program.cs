@@ -13,6 +13,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Cargar configuración desde appsettings.json
 var appSettings = builder.Configuration.GetSection("AppSettings").Get<AppSettings>() ?? new AppSettings();
 
+// Registrar servicios
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton(appSettings);
+builder.Services.AddHostedService<AutoResetService>();
+
 // Leer puerto desde variable de entorno (sobrescribe appsettings.json)
 if (int.TryParse(Environment.GetEnvironmentVariable("PORT"), out int envPort))
 {
