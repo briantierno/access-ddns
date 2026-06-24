@@ -9,7 +9,6 @@ using Microsoft.Extensions.Hosting;
 public class AutoResetService : IHostedService
 {
     private Timer _timer;
-    private readonly int _autoResetHours = 6;
     private readonly string _timestampFile = "./lastupdate.json";
     private readonly AppSettings _appSettings;
     private readonly IHttpClientFactory _httpClientFactory;
@@ -22,7 +21,7 @@ public class AutoResetService : IHostedService
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] AutoResetService iniciado - Chequeo cada 1 minuto");
+        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] AutoResetService iniciado - Auto-reset cada {_appSettings.AutoResetHours} horas, chequeo cada 1 minuto");
         
         // Chequear cada 1 minuto si hay que resetear
         _timer = new Timer(CheckAndReset, null, TimeSpan.Zero, TimeSpan.FromMinutes(1));
@@ -49,7 +48,7 @@ public class AutoResetService : IHostedService
                 return;
             }
 
-            DateTime nextReset = lastUpdate.Value.AddHours(_autoResetHours);
+            DateTime nextReset = lastUpdate.Value.AddHours(_appSettings.AutoResetHours);
             
             if (DateTime.Now >= nextReset)
             {

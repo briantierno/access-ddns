@@ -473,6 +473,16 @@
             <button class="btn-save" onclick="saveCredentials()">Guardar</button>
         </div>
 
+        <div id="settingsSection" class="section" style="display: none;">
+            <h3>⚙️ Configuración</h3>
+            <div class="form-group">
+                <label>Auto-reset cada (horas)</label>
+                <input type="number" id="autoResetHours" placeholder="6" min="1" max="720" value="6">
+                <small style="color: #888; display: block; margin-top: 4px;">Rango: 1-720 horas (máx 30 días)</small>
+            </div>
+            <button class="btn-save" onclick="saveSettings()">Guardar Configuración</button>
+        </div>
+
         <div class="section">
             <h3>📡 Consola</h3>
 
@@ -586,11 +596,49 @@
                 if (data.isDefault) {
                     document.getElementById('warningBox').classList.add('show');
                     document.getElementById('credentialsSection').style.display = 'block';
+                    document.getElementById('settingsSection').style.display = 'block';
                 }
                 currentUser = data.user || 'admin';
                 updateCredentialsDisplay();
+                loadSettings();
             } catch (e) {
                 console.error('Error checking config:', e);
+            }
+        }
+
+        async function loadSettings() {
+            try {
+                const response = await fetch('/api/settings');
+                const data = await response.json();
+                document.getElementById('autoResetHours').value = data.autoResetHours || 6;
+            } catch (e) {
+                console.error('Error loading settings:', e);
+            }
+        }
+
+        async function saveSettings() {
+            const autoResetHours = document.getElementById('autoResetHours').value.trim();
+
+            if (!autoResetHours || autoResetHours < 1 || autoResetHours > 720) {
+                showMessage('❌ Auto-reset debe estar entre 1 y 720 horas', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ autoResetHours: parseInt(autoResetHours) })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    showMessage('✅ Configuración guardada', 'success');
+                } else {
+                    showMessage('❌ ' + (data.error || 'Error'), 'error');
+                }
+            } catch (e) {
+                showMessage('❌ Error: ' + e.message, 'error');
             }
         }
 
