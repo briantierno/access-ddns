@@ -78,6 +78,27 @@
             transform: rotate(20deg);
         }
 
+        .refresh-btn {
+            background: rgba(255, 149, 0, 0.2);
+            border: 1px solid #9c27b0;
+            color: #999;
+            width: 34px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 18px;
+            margin-right: 5px;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(163, 1, 168, 0.4);
+            transform: rotate(20deg);
+        }
+
         .header p {
             color: #999;
             font-size: 13px;
@@ -527,9 +548,12 @@
     <div class="container">
         <div class="header">
             <h1>ACCESS DDNS</h1>
+            <button class="refresh-btn" onclick="location.reload()" title="Actualizar">
+                <i class="fas fa-sync-alt"></i>
+            </button>
             <button class="settings-btn" onclick="toggleSettings()" title="Configuración">
                 <i class="fas fa-cog"></i>
-            </button>
+            </button>            
             <p style="position: absolute; bottom: 5px; left: 0; right: 0; margin: 0;">Actualizar IP dinámica automáticamente</p>
         </div>
 
@@ -563,12 +587,12 @@
         </div>
 
         <div class="controls">
-            <button class="btn-update" onclick="updateNow()">Actualizar</button>
-            <button class="btn-refresh" onclick="location.reload()">Refresh</button>
+            <button class="btn-update" onclick="updateNow()">Sincronizar</button>
+             <button class="btn-disconnect" onclick="disconnect()">Desconectar</button>
         </div>
 
         <div class="controls-danger">
-            <button class="btn-disconnect" onclick="disconnect()">Desconectar</button>
+           
         </div>
 
         <div class="section">
@@ -634,7 +658,7 @@
         </div>
 
         <div class="footer">
-            <p>Auto-actualización cada 3 segundos • Auto-reset: <span id="autoResetDisplay">6</span> horas</p>
+            <p>Auto-actualización cada 1 segundo • Auto-reset: <span id="autoResetDisplay">6</span> horas</p>
         </div>
     </div>
 
