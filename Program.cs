@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.StaticFiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -159,7 +160,17 @@ static string GetMd5Hash(string input)
     }
 }
 
-app.UseStaticFiles();
+var staticFileOptions = new StaticFileOptions();
+staticFileOptions.ServeUnknownFileTypes = true;
+staticFileOptions.DefaultContentType = "application/octet-stream";
+
+// Agregar MIME type para manifest.json
+var provider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+provider.Mappings[".json"] = "application/json";
+provider.Mappings[".webmanifest"] = "application/manifest+json";
+staticFileOptions.ContentTypeProvider = provider;
+
+app.UseStaticFiles(staticFileOptions);
 
 // Mapear ruta raíz (/) y /access a la misma acción
 Func<HttpContext, System.Threading.Tasks.Task> serveAccess = async (HttpContext context) =>
