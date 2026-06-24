@@ -35,26 +35,132 @@
             padding: 30px;
             box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7);
             border: 1px solid rgba(255, 149, 0, 0.2);
+            position: relative;
         }
 
         .header {
             text-align: center;
             margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .header h1 {
             font-size: 32px;
-            margin-bottom: 8px;
+            flex: 1;
             background: linear-gradient(135deg, #ff9500 0%, #9c27b0 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             letter-spacing: 2px;
+            margin: 0;
+        }
+
+        .settings-btn {
+            background: rgba(255, 149, 0, 0.2);
+            border: 1px solid #ff9500;
+            color: #ff9500;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 18px;
+        }
+
+        .settings-btn:hover {
+            background: rgba(255, 149, 0, 0.4);
+            transform: rotate(20deg);
         }
 
         .header p {
             color: #999;
             font-size: 13px;
+            text-align: center;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        /* Modal/Sidebar */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+        }
+
+        .modal-overlay.show {
+            display: block;
+        }
+
+        .modal-sidebar {
+            position: fixed;
+            top: 0;
+            right: -400px;
+            width: 400px;
+            height: 100vh;
+            background: rgba(20, 20, 20, 0.98);
+            border-left: 1px solid rgba(255, 149, 0, 0.2);
+            overflow-y: auto;
+            z-index: 1000;
+            transition: right 0.3s ease;
+            padding: 20px;
+        }
+
+        .modal-sidebar.show {
+            right: 0;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 149, 0, 0.2);
+            border: 1px solid #ff9500;
+            color: #ff9500;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 149, 0, 0.4);
+        }
+
+        .modal-content {
+            margin-top: 40px;
+        }
+
+        .modal-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 149, 0, 0.2);
+        }
+
+        .modal-section h3 {
+            font-size: 14px;
+            margin-bottom: 15px;
+            color: #ff9500;
+        }
+
+        @media (max-width: 768px) {
+            .modal-sidebar {
+                width: 100%;
+                right: -100%;
+            }
         }
 
         .message {
@@ -420,7 +526,10 @@
     <div class="container">
         <div class="header">
             <h1>ACCESS DDNS</h1>
-            <p>Actualizar IP dinámica automáticamente</p>
+            <button class="settings-btn" onclick="toggleSettings()" title="Configuración">
+                <i class="fas fa-cog"></i>
+            </button>
+            <p style="position: absolute; bottom: 5px; left: 0; right: 0; margin: 0;">Actualizar IP dinámica automáticamente</p>
         </div>
 
         <div id="message" class="message"></div>
@@ -459,29 +568,6 @@
 
         <div class="controls-danger">
             <button class="btn-disconnect" onclick="disconnect()">Desconectar</button>
-        </div>
-
-        <div id="credentialsSection" class="section" style="display: none;">
-            <h3>🔐 Cambiar Credenciales</h3>
-            <div class="form-group">
-                <label>Usuario</label>
-                <input type="text" id="newUser" placeholder="admin" value="admin">
-            </div>
-            <div class="form-group">
-                <label>Contraseña</label>
-                <input type="password" id="newPassword" placeholder="password">
-            </div>
-            <button class="btn-save" onclick="saveCredentials()">Guardar</button>
-        </div>
-
-        <div id="settingsSection" class="section" style="display: none;">
-            <h3>⚙️ Configuración</h3>
-            <div class="form-group">
-                <label>Auto-reset cada (horas)</label>
-                <input type="number" id="autoResetHours" placeholder="6" min="1" max="720" value="6">
-                <small style="color: #888; display: block; margin-top: 4px;">Rango: 1-720 horas (máx 30 días)</small>
-            </div>
-            <button class="btn-save" onclick="saveSettings()">Guardar Configuración</button>
         </div>
 
         <div class="section">
@@ -543,7 +629,41 @@
         </div>
 
         <div class="footer">
-            <p>Auto-actualización cada 3 segundos • Auto-reset cada 6 horas</p>
+            <p>Auto-actualización cada 3 segundos • Auto-reset configurado en segundos plano</p>
+        </div>
+    </div>
+
+    <!-- Modal Sidebar -->
+    <div class="modal-overlay" id="modalOverlay" onclick="toggleSettings()"></div>
+    <div class="modal-sidebar" id="modalSidebar">
+        <button class="modal-close" onclick="toggleSettings()">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="modal-content">
+            <!-- Credenciales -->
+            <div class="modal-section">
+                <h3>🔐 Cambiar Credenciales</h3>
+                <div class="form-group">
+                    <label>Usuario</label>
+                    <input type="text" id="newUser" placeholder="admin" value="admin">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="newPassword" placeholder="password">
+                </div>
+                <button class="btn-save" onclick="saveCredentials()">Guardar Credenciales</button>
+            </div>
+
+            <!-- Configuración -->
+            <div class="modal-section">
+                <h3>⚙️ Configuración</h3>
+                <div class="form-group">
+                    <label>Auto-reset cada (horas)</label>
+                    <input type="number" id="autoResetHours" placeholder="6" min="1" max="720" value="6">
+                    <small style="color: #888; display: block; margin-top: 4px;">Rango: 1-720 (máx 30 días)</small>
+                </div>
+                <button class="btn-save" onclick="saveSettings()">Guardar Configuración</button>
+            </div>
         </div>
     </div>
 
@@ -551,6 +671,14 @@
         let currentUser = 'admin';
         let wasJustUpdated = false;
         let wasJustDisconnected = false;
+
+        // Toggle Settings Modal
+        function toggleSettings() {
+            const overlay = document.getElementById('modalOverlay');
+            const sidebar = document.getElementById('modalSidebar');
+            overlay.classList.toggle('show');
+            sidebar.classList.toggle('show');
+        }
 
         // Nueva función mejorada de copiar
         function copyToClipboard(text) {
@@ -596,8 +724,6 @@
                 const data = await response.json();
                 if (data.isDefault) {
                     document.getElementById('warningBox').classList.add('show');
-                    document.getElementById('credentialsSection').style.display = 'block';
-                    document.getElementById('settingsSection').style.display = 'block';
                 }
                 currentUser = data.user || 'admin';
                 updateCredentialsDisplay();
@@ -605,6 +731,26 @@
             } catch (e) {
                 console.error('Error checking config:', e);
             }
+        }
+
+        function updateCredentialsDisplay() {
+            const user = currentUser;
+            const pass = '••••••••';
+            
+            document.getElementById('cmdUser').textContent = user;
+            document.getElementById('cmdPass').textContent = pass;
+            document.getElementById('cmdUserUrl').textContent = user;
+            document.getElementById('cmdPassUrl').textContent = pass;
+            
+            document.getElementById('cmdUserPs').textContent = user;
+            document.getElementById('cmdPassPs').textContent = pass;
+            document.getElementById('cmdUserPsUrl').textContent = user;
+            document.getElementById('cmdPassPsUrl').textContent = pass;
+            
+            document.getElementById('cmdUserSimple').textContent = user;
+            document.getElementById('cmdPassSimple').textContent = pass;
+            document.getElementById('cmdUserSimpleUrl').textContent = user;
+            document.getElementById('cmdPassSimpleUrl').textContent = pass;
         }
 
         async function loadSettings() {
@@ -641,26 +787,6 @@
             } catch (e) {
                 showMessage('❌ Error: ' + e.message, 'error');
             }
-        }
-
-        function updateCredentialsDisplay() {
-            const user = currentUser;
-            const pass = '••••••••';
-            
-            document.getElementById('cmdUser').textContent = user;
-            document.getElementById('cmdPass').textContent = pass;
-            document.getElementById('cmdUserUrl').textContent = user;
-            document.getElementById('cmdPassUrl').textContent = pass;
-            
-            document.getElementById('cmdUserPs').textContent = user;
-            document.getElementById('cmdPassPs').textContent = pass;
-            document.getElementById('cmdUserPsUrl').textContent = user;
-            document.getElementById('cmdPassPsUrl').textContent = pass;
-            
-            document.getElementById('cmdUserSimple').textContent = user;
-            document.getElementById('cmdPassSimple').textContent = pass;
-            document.getElementById('cmdUserSimpleUrl').textContent = user;
-            document.getElementById('cmdPassSimpleUrl').textContent = pass;
         }
 
         async function loadStatus() {
@@ -815,7 +941,6 @@
                     currentUser = user;
                     updateCredentialsDisplay();
                     document.getElementById('warningBox').classList.remove('show');
-                    document.getElementById('credentialsSection').style.display = 'none';
                 } else {
                     showMessage('❌ ' + (data.error || 'Error'), 'error');
                 }
