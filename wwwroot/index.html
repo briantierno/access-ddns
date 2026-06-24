@@ -48,12 +48,13 @@
 
         .header h1 {
             font-size: 32px;
-            background: linear-gradient(135deg, #ff9500 0%, #9c27b0 100%);
+            background: #999;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             letter-spacing: 2px;
             margin: 0;
+            -webkit-text-stroke: 0.3px #ff9500;
         }
 
         .header-buttons {
@@ -553,6 +554,39 @@
                 padding: 10px 12px;
                 font-size: 12px;
             }
+
+
+            .settings-btn {
+                background: rgba(255, 149, 0, 0.2);
+                border: 1px solid #ff9500;
+                color: #ff9500;
+                width: 26px;
+                height: 26px;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s;
+                font-size: 18px;
+            }
+
+                        .btn-refresh-header {
+                background: rgba(156, 39, 176, 0.2);
+                border: 1px solid #9c27b0;
+                color: #9c27b0;
+                width: 26px;
+                height: 26px;
+                border-radius: 50%;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s;
+                font-size: 16px;
+            }
+
+
         }
     </style>
 </head>
@@ -601,17 +635,14 @@
         </div>
 
         <div class="controls">
-            <button class="btn-update" onclick="updateNow()">Actualizar</button>
-            <button class="btn-refresh" onclick="location.reload()">Refresh</button>
+            <button class="btn-update" onclick="updateNow()">Sincronizar</button>
+            <button class="btn-disconnect" onclick="disconnect()">Desconectar</button>
         </div>
 
-        <div class="controls-danger">
-            <button class="btn-disconnect" onclick="disconnect()">❌ Desconectar</button>
-        </div>
 
         <div class="section">
             <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleConsole()">
-                <h3 style="margin: 0;"><i class="fas fa-terminal"></i> Comandos Útiles</h3>
+                <h3 style="margin: 0;"><i class="fas fa-terminal"></i> Comandos Utiles</h3>
                 <i class="fas fa-chevron-down" id="consoleToggleIcon" style="color: #ff9500; transition: transform 0.3s; transform: rotate(0deg);"></i>
             </div>
             <div id="consoleContent" style="display: none; transition: all 0.3s;">
