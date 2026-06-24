@@ -572,10 +572,10 @@
 
         <div class="section">
             <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleConsole()">
-                <h3 style="margin: 0;">📡 Consola</h3>
-                <i class="fas fa-chevron-down" id="consoleToggleIcon" style="color: #ff9500; transition: transform 0.3s;"></i>
+                <h3 style="margin: 0;">📡 Comandos Útiles</h3>
+                <i class="fas fa-chevron-down" id="consoleToggleIcon" style="color: #ff9500; transition: transform 0.3s; transform: rotate(0deg);"></i>
             </div>
-            <div id="consoleContent" style="display: block; transition: all 0.3s;">
+            <div id="consoleContent" style="display: none; transition: all 0.3s;">
                 <div class="cmd-group">
                     <label class="cmd-label">Linux / Mac / WSL (con -u)</label>
                     <div class="cmd-box" id="cmd1">IP=$(curl -s https://ipinfo.io/ip) && curl -u <span id="cmdUser">admin</span>:<span id="cmdPass">password</span> "http://localhost:5000/api/update?ip=$IP"
@@ -688,8 +688,16 @@
         function toggleConsole() {
             const content = document.getElementById('consoleContent');
             const icon = document.getElementById('consoleToggleIcon');
-            content.style.display = content.style.display === 'none' ? 'block' : 'none';
-            icon.style.transform = content.style.display === 'none' ? 'rotate(-90deg)' : 'rotate(0deg)';
+            
+            if (content.style.display === 'none') {
+                // Expandir
+                content.style.display = 'block';
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                // Contraer
+                content.style.display = 'none';
+                icon.style.transform = 'rotate(0deg)';
+            }
         }
 
         // Nueva función mejorada de copiar
