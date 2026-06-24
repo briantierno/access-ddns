@@ -202,13 +202,25 @@ app.MapGet("/api/pwa-status", async (HttpContext context) =>
         var icon512Path = "./wwwroot/icon-512.png";
         var swPath = "./wwwroot/sw.js";
 
+        bool manifestReadable = false;
+        if (File.Exists(manifestPath))
+        {
+            try
+            {
+                var json = File.ReadAllText(manifestPath);
+                var doc = JsonDocument.Parse(json);
+                manifestReadable = true;
+            }
+            catch { }
+        }
+
         var result = new
         {
             manifest = new
             {
                 exists = File.Exists(manifestPath),
                 size = File.Exists(manifestPath) ? new FileInfo(manifestPath).Length : 0,
-                readable = false
+                readable = manifestReadable
             },
             icons = new
             {
@@ -231,21 +243,6 @@ app.MapGet("/api/pwa-status", async (HttpContext context) =>
             https = context.Request.IsHttps,
             host = context.Request.Host.ToString()
         };
-
-        // Try to read manifest
-        if (File.Exists(manifestPath))
-        {
-            try
-            {
-                var json = File.ReadAllText(manifestPath);
-                var doc = JsonDocument.Parse(json);
-                result.manifest.readable = true;
-            }
-            catch (Exception ex)
-            {
-                result.manifest.readable = false;
-            }
-        }
 
         context.Response.ContentType = "application/json";
         await context.Response.WriteAsJsonAsync(result);
