@@ -250,6 +250,12 @@ app.MapGet("/api/status", async (HttpContext context) =>
         var nextReset = lastUpdate?.AddHours(autoResetHours) ?? DateTime.Now;
         var timeRemaining = (long)(nextReset - DateTime.Now).TotalSeconds;
 
+        // Si la IP en DNS ya es la de disconnect (1.1.1.1), el countdown está en 0
+        if (dnsIp == appSettings.CDmon.DisconnectIP)
+        {
+            timeRemaining = 0;
+        }
+
         var result = new
         {
             currentIp = publicIp,
