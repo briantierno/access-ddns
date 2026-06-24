@@ -131,6 +131,26 @@ DateTime? GetLastTimestamp()
     catch { return null; }
 }
 
+int GetAutoResetHours()
+{
+    try
+    {
+        if (File.Exists("./appsettings.json"))
+        {
+            var json = File.ReadAllText("./appsettings.json");
+            var doc = JsonDocument.Parse(json);
+            if (doc.RootElement.TryGetProperty("AppSettings", out var appSettingsElement) &&
+                appSettingsElement.TryGetProperty("AutoResetHours", out var hoursElement) &&
+                hoursElement.TryGetInt32(out int hours))
+            {
+                return hours;
+            }
+        }
+    }
+    catch { }
+    return 6; // Default
+}
+
 static string GetMd5Hash(string input)
 {
     using (var md5 = System.Security.Cryptography.MD5.Create())
@@ -226,6 +246,7 @@ app.MapGet("/api/status", async (HttpContext context) =>
         }
 
         var lastUpdate = GetLastTimestamp();
+        var autoResetHours = GetAutoResetHours();
         var nextReset = lastUpdate?.AddHours(autoResetHours) ?? DateTime.Now;
         var timeRemaining = (long)(nextReset - DateTime.Now).TotalSeconds;
 
