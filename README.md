@@ -1,6 +1,7 @@
 # ACCESS DDNS
 
-Actualiza dinámicamente registros DNS en CDmon para mantener un dominio apuntando a tu IP pública actual.
+Actualiza dinámicamente registros DNS en CDmon para mantener un dominio apuntando a tu IP pública actual 
+para garantizar acceso en mikrotik desde cualquier equipo remoto eventual.
 
 ## **Instalación y Configuración**
 
