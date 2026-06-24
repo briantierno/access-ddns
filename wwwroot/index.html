@@ -571,65 +571,69 @@
         </div>
 
         <div class="section">
-            <h3>📡 Consola</h3>
-
-            <div class="cmd-group">
-                <label class="cmd-label">Linux / Mac / WSL (con -u)</label>
-                <div class="cmd-box" id="cmd1">IP=$(curl -s https://ipinfo.io/ip) && curl -u <span id="cmdUser">admin</span>:<span id="cmdPass">password</span> "http://localhost:5000/api/update?ip=$IP"
-                    <button class="cmd-copy" onclick="copiarComando('cmd1')" title="Copiar">
-                        <i class="fas fa-copy"></i>
-                        <div class="cmd-copy-tooltip">Copy</div>
-                    </button>
-                </div>
-                <div class="cmd-variant">O directamente (credenciales en URL):
-                    <div class="cmd-box" id="cmd2" style="margin-top: 8px;">IP=$(curl -s https://ipinfo.io/ip) && curl "http://localhost:5000/api/update?ip=$IP&user=<span id="cmdUserUrl">admin</span>&pass=<span id="cmdPassUrl">password</span>"
-                    <button class="cmd-copy" onclick="copiarComando('cmd2')" title="Copiar">
-                        <i class="fas fa-copy"></i>
-                        <div class="cmd-copy-tooltip">Copy</div>
-                    </button>
-                </div>
-                </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleConsole()">
+                <h3 style="margin: 0;">📡 Consola</h3>
+                <i class="fas fa-chevron-down" id="consoleToggleIcon" style="color: #ff9500; transition: transform 0.3s;"></i>
             </div>
+            <div id="consoleContent" style="display: block; transition: all 0.3s;">
+                <div class="cmd-group">
+                    <label class="cmd-label">Linux / Mac / WSL (con -u)</label>
+                    <div class="cmd-box" id="cmd1">IP=$(curl -s https://ipinfo.io/ip) && curl -u <span id="cmdUser">admin</span>:<span id="cmdPass">password</span> "http://localhost:5000/api/update?ip=$IP"
+                        <button class="cmd-copy" onclick="copiarComando('cmd1')" title="Copiar">
+                            <i class="fas fa-copy"></i>
+                            <div class="cmd-copy-tooltip">Copy</div>
+                        </button>
+                    </div>
+                    <div class="cmd-variant">O directamente (credenciales en URL):
+                        <div class="cmd-box" id="cmd2" style="margin-top: 8px;">IP=$(curl -s https://ipinfo.io/ip) && curl "http://localhost:5000/api/update?ip=$IP&user=<span id="cmdUserUrl">admin</span>&pass=<span id="cmdPassUrl">password</span>"
+                        <button class="cmd-copy" onclick="copiarComando('cmd2')" title="Copiar">
+                            <i class="fas fa-copy"></i>
+                            <div class="cmd-copy-tooltip">Copy</div>
+                        </button>
+                    </div>
+                    </div>
+                </div>
 
-            <div class="cmd-group">
-                <label class="cmd-label">Windows PowerShell (con -u)</label>
-                <div class="cmd-box" id="cmd3">$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl -u <span id="cmdUserPs">admin</span>:<span id="cmdPassPs">password</span> "http://localhost:5000/api/update?ip=$ip"
-                    <button class="cmd-copy" onclick="copiarComando('cmd3')" title="Copiar">
-                        <i class="fas fa-copy"></i>
-                        <div class="cmd-copy-tooltip">Copy</div>
-                    </button>
+                <div class="cmd-group">
+                    <label class="cmd-label">Windows PowerShell (con -u)</label>
+                    <div class="cmd-box" id="cmd3">$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl -u <span id="cmdUserPs">admin</span>:<span id="cmdPassPs">password</span> "http://localhost:5000/api/update?ip=$ip"
+                        <button class="cmd-copy" onclick="copiarComando('cmd3')" title="Copiar">
+                            <i class="fas fa-copy"></i>
+                            <div class="cmd-copy-tooltip">Copy</div>
+                        </button>
+                    </div>
+                    <div class="cmd-variant">O directamente (credenciales en URL):
+                        <div class="cmd-box" id="cmd4" style="margin-top: 8px;">$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl "http://localhost:5000/api/update?ip=$ip&user=<span id="cmdUserPsUrl">admin</span>&pass=<span id="cmdPassPsUrl">password</span>"
+                        <button class="cmd-copy" onclick="copiarComando('cmd4')" title="Copiar">
+                            <i class="fas fa-copy"></i>
+                            <div class="cmd-copy-tooltip">Copy</div>
+                        </button>
+                    </div>
+                    </div>
                 </div>
-                <div class="cmd-variant">O directamente (credenciales en URL):
-                    <div class="cmd-box" id="cmd4" style="margin-top: 8px;">$ip=(Invoke-WebRequest https://ipinfo.io/ip).Content; curl "http://localhost:5000/api/update?ip=$ip&user=<span id="cmdUserPsUrl">admin</span>&pass=<span id="cmdPassPsUrl">password</span>"
-                    <button class="cmd-copy" onclick="copiarComando('cmd4')" title="Copiar">
-                        <i class="fas fa-copy"></i>
-                        <div class="cmd-copy-tooltip">Copy</div>
-                    </button>
-                </div>
-                </div>
-            </div>
 
-            <div class="cmd-group">
-                <label class="cmd-label">Windows CMD / Bash / Universal (con -u)</label>
-                <div class="cmd-box" id="cmd5">curl -u <span id="cmdUserSimple">admin</span>:<span id="cmdPassSimple">password</span> http://localhost:5000/api/update
-                    <button class="cmd-copy" onclick="copiarComando('cmd5')" title="Copiar">
-                        <i class="fas fa-copy"></i>
-                        <div class="cmd-copy-tooltip">Copy</div>
-                    </button>
-                </div>
-                <div class="cmd-variant">O directamente (credenciales en URL):
-                    <div class="cmd-box" id="cmd6" style="margin-top: 8px;">curl "http://localhost:5000/api/update?user=<span id="cmdUserSimpleUrl">admin</span>&pass=<span id="cmdPassSimpleUrl">password</span>"
-                    <button class="cmd-copy" onclick="copiarComando('cmd6')" title="Copiar">
-                        <i class="fas fa-copy"></i>
-                        <div class="cmd-copy-tooltip">Copy</div>
-                    </button>
-                </div>
+                <div class="cmd-group">
+                    <label class="cmd-label">Windows CMD / Bash / Universal (con -u)</label>
+                    <div class="cmd-box" id="cmd5">curl -u <span id="cmdUserSimple">admin</span>:<span id="cmdPassSimple">password</span> http://localhost:5000/api/update
+                        <button class="cmd-copy" onclick="copiarComando('cmd5')" title="Copiar">
+                            <i class="fas fa-copy"></i>
+                            <div class="cmd-copy-tooltip">Copy</div>
+                        </button>
+                    </div>
+                    <div class="cmd-variant">O directamente (credenciales en URL):
+                        <div class="cmd-box" id="cmd6" style="margin-top: 8px;">curl "http://localhost:5000/api/update?user=<span id="cmdUserSimpleUrl">admin</span>&pass=<span id="cmdPassSimpleUrl">password</span>"
+                        <button class="cmd-copy" onclick="copiarComando('cmd6')" title="Copiar">
+                            <i class="fas fa-copy"></i>
+                            <div class="cmd-copy-tooltip">Copy</div>
+                        </button>
+                    </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="footer">
-            <p>Auto-actualización cada 3 segundos • Auto-reset configurado en segundos plano</p>
+            <p>Auto-actualización cada 3 segundos • Auto-reset: <span id="autoResetDisplay">6</span> horas</p>
         </div>
     </div>
 
@@ -678,6 +682,14 @@
             const sidebar = document.getElementById('modalSidebar');
             overlay.classList.toggle('show');
             sidebar.classList.toggle('show');
+        }
+
+        // Toggle Console Section
+        function toggleConsole() {
+            const content = document.getElementById('consoleContent');
+            const icon = document.getElementById('consoleToggleIcon');
+            content.style.display = content.style.display === 'none' ? 'block' : 'none';
+            icon.style.transform = content.style.display === 'none' ? 'rotate(-90deg)' : 'rotate(0deg)';
         }
 
         // Nueva función mejorada de copiar
@@ -758,6 +770,7 @@
                 const response = await fetch('/api/settings');
                 const data = await response.json();
                 document.getElementById('autoResetHours').value = data.autoResetHours || 6;
+                document.getElementById('autoResetDisplay').textContent = data.autoResetHours || 6;
             } catch (e) {
                 console.error('Error loading settings:', e);
             }
@@ -781,6 +794,7 @@
 
                 if (response.ok) {
                     showMessage('✅ Configuración guardada', 'success');
+                    document.getElementById('autoResetDisplay').textContent = autoResetHours;
                 } else {
                     showMessage('❌ ' + (data.error || 'Error'), 'error');
                 }
