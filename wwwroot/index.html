@@ -10,8 +10,9 @@
     <meta http-equiv="Expires" content="0">
     
     <!-- PWA Meta Tags -->
-    <meta name="manifest" content="/manifest.json">
+    <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#ff9500">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="description" content="Actualizador dinámico de DNS para router MikroTik">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -727,6 +728,15 @@
             <i class="fas fa-times"></i>
         </button>
         <div class="modal-content">
+            <!-- Botón Instalar App -->
+            <div class="modal-section" id="installPromptSection" style="display: none;">
+                <h3>📱 Instalar App</h3>
+                <p style="font-size: 12px; color: #aaa; margin-bottom: 12px;">Instala Access DDNS en tu dispositivo para acceso rápido</p>
+                <button class="btn-save" onclick="installApp()" style="background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);">
+                    <i class="fas fa-download"></i> Instalar
+                </button>
+            </div>
+
             <!-- Credenciales -->
             <div class="modal-section">
                 <h3>🔐 Cambiar Credenciales</h3>
@@ -758,6 +768,41 @@
         let currentUser = 'admin';
         let wasJustUpdated = false;
         let wasJustDisconnected = false;
+        let deferredPrompt;
+
+        // Capturar beforeinstallprompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installPromptSection').style.display = 'block';
+            console.log('✅ Install prompt disponible - mostrar botón');
+        });
+
+        // Instalar app
+        async function installApp() {
+            if (!deferredPrompt) {
+                showMessage('❌ No hay prompt disponible', 'error');
+                return;
+            }
+
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response to the install prompt: ${outcome}`);
+
+            if (outcome === 'accepted') {
+                showMessage('✅ App instalada exitosamente', 'success');
+                deferredPrompt = null;
+                document.getElementById('installPromptSection').style.display = 'none';
+            } else {
+                showMessage('❌ Instalación cancelada', 'error');
+            }
+        }
+
+        // App installed
+        window.addEventListener('appinstalled', () => {
+            console.log('✅ PWA was installed');
+            showMessage('✅ Access DDNS instalada en tu dispositivo', 'success');
+        });
 
         // Toggle Settings Modal
         function toggleSettings() {
