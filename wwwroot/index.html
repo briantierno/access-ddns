@@ -43,6 +43,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: relative;
         }
 
         .header h1 {
@@ -74,6 +75,26 @@
         .settings-btn:hover {
             background: rgba(255, 149, 0, 0.4);
             transform: rotate(20deg);
+        }
+
+        .btn-refresh-header {
+            background: rgba(156, 39, 176, 0.2);
+            border: 1px solid #9c27b0;
+            color: #9c27b0;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 16px;
+        }
+
+        .btn-refresh-header:hover {
+            background: rgba(156, 39, 176, 0.4);
+            transform: rotate(180deg);
         }
 
         .header p {
@@ -524,11 +545,16 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>ACCESS DDNS</h1>
-            <button class="settings-btn" onclick="toggleSettings()" title="Configuración">
-                <i class="fas fa-cog"></i>
-            </button>
-            <p style="position: absolute; bottom: 5px; left: 0; right: 0; margin: 0;">Actualizar IP dinámica automáticamente</p>
+            <h1 style="position: absolute; left: 50%; transform: translateX(-50%); margin: 0;">ACCESS DDNS</h1>
+            <div style="margin-left: auto; display: flex; gap: 8px;">
+                <button class="btn-refresh-header" onclick="location.reload()" title="Refresh">
+                    <i class="fas fa-refresh"></i>
+                </button>
+                <button class="settings-btn" onclick="toggleSettings()" title="Configuración">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+            <p style="position: absolute; bottom: 5px; left: 0; right: 0; margin: 0; text-align: center;">Actualizar IP dinámica automáticamente</p>
         </div>
 
         <div id="message" class="message"></div>
