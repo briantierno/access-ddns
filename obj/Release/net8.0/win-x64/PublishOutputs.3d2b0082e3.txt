@@ -1,5 +1,0 @@
-A:\Documents\VARIOS\access-ddns\publish\appsettings.json
-A:\Documents\VARIOS\access-ddns\publish\credentials.json
-A:\Documents\VARIOS\access-ddns\publish\lastupdate.json
-A:\Documents\VARIOS\access-ddns\publish\access-ddns.pdb
-A:\Documents\VARIOS\access-ddns\publish\access-ddns.exe
