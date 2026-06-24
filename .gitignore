@@ -1,0 +1,36 @@
+# Build results
+bin/
+obj/
+publish/
+*.dll
+*.exe
+*.o
+*.so
+
+# IDE
+.vscode/
+.vs/
+*.user
+*.userprefs
+*.sln.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Local config (credentials)
+credentials.json
+lastupdate.json
+
+# Dependencies
+node_modules/
+packages/
+
+# Temporary files
+*.tmp
+*.temp
+*~
