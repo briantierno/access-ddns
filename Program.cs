@@ -193,7 +193,71 @@ Func<HttpContext, System.Threading.Tasks.Task> serveAccess = async (HttpContext 
 app.MapGet("/", serveAccess);
 app.MapGet("/access", serveAccess);
 
-app.MapGet("/api/config", async (HttpContext context) =>
+app.MapGet("/api/pwa-status", async (HttpContext context) =>
+{
+    try
+    {
+        var manifestPath = "./wwwroot/manifest.json";
+        var icon192Path = "./wwwroot/icon-192.png";
+        var icon512Path = "./wwwroot/icon-512.png";
+        var swPath = "./wwwroot/sw.js";
+
+        var result = new
+        {
+            manifest = new
+            {
+                exists = File.Exists(manifestPath),
+                size = File.Exists(manifestPath) ? new FileInfo(manifestPath).Length : 0,
+                readable = false
+            },
+            icons = new
+            {
+                icon_192 = new
+                {
+                    exists = File.Exists(icon192Path),
+                    size = File.Exists(icon192Path) ? new FileInfo(icon192Path).Length : 0
+                },
+                icon_512 = new
+                {
+                    exists = File.Exists(icon512Path),
+                    size = File.Exists(icon512Path) ? new FileInfo(icon512Path).Length : 0
+                }
+            },
+            serviceWorker = new
+            {
+                exists = File.Exists(swPath),
+                size = File.Exists(swPath) ? new FileInfo(swPath).Length : 0
+            },
+            https = context.Request.IsHttps,
+            host = context.Request.Host.ToString()
+        };
+
+        // Try to read manifest
+        if (File.Exists(manifestPath))
+        {
+            try
+            {
+                var json = File.ReadAllText(manifestPath);
+                var doc = JsonDocument.Parse(json);
+                result.manifest.readable = true;
+            }
+            catch (Exception ex)
+            {
+                result.manifest.readable = false;
+            }
+        }
+
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(result);
+    }
+    catch (Exception ex)
+    {
+        context.Response.StatusCode = 500;
+        await context.Response.WriteAsJsonAsync(new { error = ex.Message });
+    }
+});
+
+
 {
     if (appSettings.RequireAuthentication && !IsDefaultCredentials() && !ValidateAuth(context, out _))
     {
