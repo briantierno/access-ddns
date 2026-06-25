@@ -11,7 +11,7 @@
     
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#ff9500">
+    <meta name="theme-color" content="#505050">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="description" content="Actualizador dinámico de DNS para router MikroTik">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -52,16 +52,17 @@
         }
 
         #logo {
-            position: relative;
-            text-align: center;            
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            gap: 20px;
         }
 
         #logo img {
-            width: 22vh;
+            width: 80px;
             height: auto;
-            
         }
-
 
         .header {
             text-align: center;
@@ -74,20 +75,18 @@
 
         .header h1 {
             font-size: 32px;    
-            background: #999;
+            background: linear-gradient(135deg, #ff9500 0%, #9c27b0 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             letter-spacing: 2px;
             margin: 0;
-            -webkit-text-stroke: 0.3px #ff9500;
         }
 
         .header-buttons {
-            position: absolute;
-            right: 0;
             display: flex;
             gap: 8px;
+            margin-left: auto;
         }
 
         .header-subtitle {
@@ -798,6 +797,9 @@
         let wasJustDisconnected = false;
         let deferredPrompt;
 
+        // Bloquear scroll al iniciar (consola colapsada por defecto)
+        document.body.style.overflowY = 'auto';
+
         // Capturar beforeinstallprompt
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -1164,7 +1166,6 @@
         // Register Service Worker for PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                document.body.style.overflowY = 'auto';
                 navigator.serviceWorker.register('/sw.js')
                     .then(reg => console.log('✅ SW registered:', reg))
                     .catch(err => console.log('❌ SW registration failed:', err));
