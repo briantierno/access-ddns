@@ -1,4 +1,4 @@
-const CACHE_NAME = 'access-ddns-v2'; // Cambiar versión para forzar renovación
+const CACHE_NAME = 'access-ddns-v3'; // Cambiar versión para forzar renovación
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
