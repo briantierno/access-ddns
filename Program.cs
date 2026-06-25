@@ -178,6 +178,7 @@ Func<HttpContext, System.Threading.Tasks.Task> serveAccess = async (HttpContext 
     if (appSettings.RequireAuthentication && !IsDefaultCredentials() && !ValidateAuth(context, out _))
     {
         context.Response.StatusCode = 401;
+        context.Response.Headers["WWW-Authenticate"] = $"Basic realm=\"{appSettings.DNS.Domain}\"";
         await context.Response.WriteAsync("Unauthorized");
         return;
     }
