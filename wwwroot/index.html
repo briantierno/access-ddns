@@ -34,10 +34,8 @@
             background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             color: #e0e0e0;
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             padding: 20px;
+            overflow-y: hidden;
         }
 
         .login-modal {
@@ -876,9 +874,6 @@
         let deferredPrompt;
         let statusIntervalId = null;
 
-        // Bloquear scroll al iniciar (consola colapsada por defecto)
-        document.body.style.overflowY = 'auto';
-
         // Obtener credenciales de localStorage o mostrar modal de login
         function getCredentials() {
             const stored = localStorage.getItem('access-ddns-credentials');
@@ -995,16 +990,15 @@
             const icon = document.getElementById('consoleToggleIcon');
             
             if (content.style.display === 'none') {
-                // Expandir
+                // Expandir - liberar scroll
                 content.style.display = 'block';
                 icon.style.transform = 'rotate(180deg)';
-                document.body.style.overflowY = 'auto'; // Permitir scroll
+                document.body.style.overflowY = 'auto';
             } else {
-                // Contraer
+                // Contraer - bloquear scroll
                 content.style.display = 'none';
                 icon.style.transform = 'rotate(0deg)';
-                // No bloquear scroll si es necesario
-                // document.body.style.overflowY = 'hidden';
+                document.body.style.overflowY = 'hidden';
             }
         }
 
