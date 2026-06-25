@@ -1,4 +1,4 @@
-const CACHE_NAME = 'access-ddns-v1';
+const CACHE_NAME = 'access-ddns-v2'; // Cambiar versión para forzar renovación
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -14,7 +14,6 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME).then(cache => {
       return cache.addAll(ASSETS_TO_CACHE).catch(err => {
         console.log('Cache addAll error:', err);
-        // Continue even if some assets fail to cache
         return cache.add('/');
       });
     })
@@ -29,6 +28,7 @@ self.addEventListener('activate', event => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheName !== CACHE_NAME) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -38,14 +38,15 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - Network First para APIs, Cache First para assets
 self.addEventListener('fetch', event => {
-  // Skip API calls - always use network for live data
-  if (event.request.url.includes('/api/')) {
+  const url = new URL(event.request.url);
+  
+  // APIs: SIEMPRE ir a network, sin cachear
+  if (url.pathname.startsWith('/api/')) {
     event.respondWith(
-      fetch(event.request)
-        .then(response => response)
-        .catch(() => new Response(JSON.stringify({ error: 'Offline' }), {
+      fetch(event.request, { cache: 'no-store' })
+        .catch(() => new Response(JSON.stringify({ error: 'Network error - offline' }), {
           status: 503,
           headers: { 'Content-Type': 'application/json' }
         }))
@@ -53,11 +54,26 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // For assets: try cache first, fallback to network
+  // External APIs (ipinfo.io): Network first con reintentos
+  if (event.request.url.includes('ipinfo.io')) {
+    event.respondWith(
+      fetch(event.request, { cache: 'no-store' })
+        .catch(() => new Response(JSON.stringify({ error: 'Network error' }), {
+          status: 503,
+          headers: { 'Content-Type': 'application/json' }
+        }))
+    );
+    return;
+  }
+
+  // Assets: Cache first, fallback a network
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        return response || fetch(event.request);
+        if (response) {
+          return response;
+        }
+        return fetch(event.request);
       })
       .catch(() => {
         return caches.match('/index.html');

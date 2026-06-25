@@ -963,18 +963,33 @@
                 const clientIp = await clientIpResponse.text().then(ip => ip.trim());
                 
                 const timestamp = new Date().getTime();
-                const response = await fetch(`/api/status?t=${timestamp}`);
+                const response = await fetch(`/api/status?t=${timestamp}`, {
+                    cache: 'no-store',
+                    headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
+                });
                 const data = await response.json();
                 
                 document.getElementById('currentIp').textContent = clientIp || 'Error';
-                document.getElementById('dnsIp').textContent = data.dnsIp || 'No resuelto';
+                
+                // Si DNS falla, reintentar una vez
+                let dnsIp = data.dnsIp || 'No resuelto';
+                if (dnsIp === 'No resuelto' || !dnsIp) {
+                    console.warn('⚠️ DNS no resolvió, reintentando...');
+                    await new Promise(r => setTimeout(r, 500));
+                    const retryResponse = await fetch(`/api/status?t=${Date.now()}`, {
+                        cache: 'no-store'
+                    });
+                    const retryData = await retryResponse.json();
+                    dnsIp = retryData.dnsIp || 'No resuelto';
+                }
+                
+                document.getElementById('dnsIp').textContent = dnsIp;
                 document.getElementById('lastUpdate').textContent = data.lastUpdated || '-';
                 
                 updateCountdown(data.nextResetIn);
                 
                 const syncText = document.getElementById('syncText');
                 const dnsLoader = document.getElementById('dnsLoader');
-                const dnsIp = data.dnsIp || '';
                 
                 if (wasJustDisconnected) {
                     if (clientIp !== dnsIp) {
