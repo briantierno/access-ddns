@@ -1025,6 +1025,7 @@
                 
                 const response = await fetch(`/api/status?t=${timestamp}`, {
                     cache: 'no-store',
+                    credentials: 'include', // Enviar credenciales de Basic Auth
                     headers: headers
                 });
                 
@@ -1047,6 +1048,7 @@
                     await new Promise(r => setTimeout(r, 500));
                     const retryResponse = await fetch(`/api/status?t=${Date.now()}`, {
                         cache: 'no-store',
+                        credentials: 'include',
                         headers: headers
                     });
                     const retryData = await retryResponse.json();
@@ -1145,6 +1147,7 @@
 
                 const response = await fetch('/api/update?ip=' + ip.trim(), { 
                     method: 'POST',
+                    credentials: 'include',
                     headers: headers
                 });
                 const data = await response.json();
@@ -1183,6 +1186,7 @@
 
                 const response = await fetch('/api/disconnect', { 
                     method: 'POST',
+                    credentials: 'include',
                     headers: headers
                 });
                 const data = await response.json();
