@@ -897,6 +897,14 @@
             document.getElementById('loginUser').focus();
             document.getElementById('loginUser').value = '';
             document.getElementById('loginPassword').value = '';
+            
+            // Agregar listeners para presionar Enter
+            document.getElementById('loginUser').onkeypress = (e) => {
+                if (e.key === 'Enter') submitLogin();
+            };
+            document.getElementById('loginPassword').onkeypress = (e) => {
+                if (e.key === 'Enter') submitLogin();
+            };
         }
 
         // Procesar login
