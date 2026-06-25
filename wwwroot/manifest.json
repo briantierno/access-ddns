@@ -2,7 +2,7 @@
   "id": "/",
   "name": "Access DDNS - Dynamic DNS Updater",
   "short_name": "Access DDNS",
-  "description": "Actualizador dinámico de DNS para router MikroTik",
+  "description": "Actualizador dinámico de DNS para  acceder a router MikroTik",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

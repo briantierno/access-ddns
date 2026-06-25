@@ -60,7 +60,7 @@
         }
 
         #logo img {
-            width: 80px;
+            width: 15vh;
             height: auto;
         }
 
@@ -75,12 +75,13 @@
 
         .header h1 {
             font-size: 32px;    
-            background: linear-gradient(135deg, #ff9500 0%, #9c27b0 100%);
+            background: #999;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             letter-spacing: 2px;
             margin: 0;
+            -webkit-text-stroke: 0.5px #ff9500; /* Grosor y color del contorno */
         }
 
         .header-buttons {
@@ -100,7 +101,7 @@
         .settings-btn {
             background: rgba(255, 149, 0, 0.2);
             border: 1px solid #ff9500;
-            color: #ff9500;
+            color: #999;
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -120,7 +121,7 @@
         .btn-refresh-header {
             background: rgba(156, 39, 176, 0.2);
             border: 1px solid #9c27b0;
-            color: #9c27b0;
+            color: #999;
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -572,7 +573,7 @@
             }
 
             .ip-display {
-                font-size: 36px;
+                font-size: 2rem;
             }
 
             .status-item {
@@ -593,33 +594,15 @@
             }
 
 
-            .settings-btn {
-                background: rgba(255, 149, 0, 0.2);
-                border: 1px solid #ff9500;
-                color: #ff9500;
+            .settings-btn {                
                 width: 26px;
-                height: 26px;
-                border-radius: 50%;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.3s;
-                font-size: 18px;
+                height: 26px;               
+                font-size: 16px;
             }
 
                         .btn-refresh-header {
-                background: rgba(156, 39, 176, 0.2);
-                border: 1px solid #9c27b0;
-                color: #9c27b0;
-                width: 26px;
-                height: 26px;
-                border-radius: 50%;
-                cursor: pointer;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                transition: all 0.3s;
+                 width: 26px;
+                height: 26px;                
                 font-size: 16px;
             }
 
@@ -683,7 +666,7 @@
 
         <div class="section">
             <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleConsole()">                
-                <h3 style="margin: 0;"><i class="fas fa-terminal"></i> Comandos Utiles</h3>
+                <h3 style="margin: 0;"><i style="color: #ff9500;"  class="fas fa-terminal"></i> Comandos Utiles</h3>
                 <i class="fas fa-chevron-down" id="consoleToggleIcon" style="color: #ff9500; transition: transform 0.3s; transform: rotate(0deg);"></i>
             </div>
             <div id="consoleContent" style="display: none; transition: all 0.3s;">
@@ -744,7 +727,7 @@
         </div>
 
         <div class="footer">
-            <p>Auto-actualización cada 3 segundos • Auto-reset: <span id="autoResetDisplay">6</span> horas</p>
+            <p>Auto-actualización cada 1 segundo • Auto-reset: <span id="autoResetDisplay">6</span> horas</p>
         </div>
     </div>
 
