@@ -40,6 +40,85 @@
             padding: 20px;
         }
 
+        .login-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .login-box {
+            background: rgba(20, 20, 20, 0.98);
+            border: 1px solid rgba(255, 149, 0, 0.2);
+            border-radius: 12px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7);
+        }
+
+        .login-box h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #ff9500;
+        }
+
+        .login-box .form-group {
+            margin-bottom: 20px;
+        }
+
+        .login-box label {
+            display: block;
+            font-size: 12px;
+            margin-bottom: 8px;
+            color: #aaa;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 149, 0, 0.3);
+            border-radius: 6px;
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        .login-box input:focus {
+            outline: none;
+            border-color: #ff9500;
+            background: rgba(0, 0, 0, 0.6);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #ff9500 0%, #ff7500 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-login:hover {
+            box-shadow: 0 5px 15px rgba(255, 149, 0, 0.4);
+        }
+
+        .btn-login:active {
+            transform: scale(0.98);
+        }
+
         .container {
             width: 100%;
             max-width: 700px;
@@ -611,6 +690,22 @@
     </style>
 </head>
 <body>
+    <!-- Login Modal -->
+    <div id="loginModal" class="login-modal" style="display: none;">
+        <div class="login-box">
+            <h2>🔐 Acceso Requerido</h2>
+            <div class="form-group">
+                <label>Usuario</label>
+                <input type="text" id="loginUser" placeholder="admin" autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="loginPassword" placeholder="password" autocomplete="current-password">
+            </div>
+            <button class="btn-login" onclick="submitLogin()">Ingresar</button>
+        </div>
+    </div>
+
     <div class="container">
         <div id="logo">
             <img src="logo.png" alt="Logo">
@@ -779,58 +874,60 @@
         let wasJustUpdated = false;
         let wasJustDisconnected = false;
         let deferredPrompt;
-        let storedCredentials = null; // user:password en base64
 
         // Bloquear scroll al iniciar (consola colapsada por defecto)
         document.body.style.overflowY = 'auto';
 
-        // Obtener credenciales de localStorage o del servidor
-        async function getCredentials() {
-            // Si ya las tenemos en localStorage, usarlas
-            if (storedCredentials) {
-                return storedCredentials;
-            }
-
-            // Intentar recuperarlas de localStorage
+        // Obtener credenciales de localStorage o mostrar modal de login
+        function getCredentials() {
             const stored = localStorage.getItem('access-ddns-credentials');
             if (stored) {
-                storedCredentials = stored;
                 return stored;
             }
-
-            // Si no hay, intentar traerlas del servidor (requiere estar autenticado)
-            try {
-                const response = await fetch('/api/config');
-                if (response.status === 200) {
-                    const data = await response.json();
-                    const user = data.user || 'admin';
-                    const pass = localStorage.getItem('access-ddns-password') || 'password';
-                    const credentials = btoa(`${user}:${pass}`);
-                    localStorage.setItem('access-ddns-credentials', credentials);
-                    storedCredentials = credentials;
-                    console.log('✅ Credenciales recuperadas del servidor');
-                    return credentials;
-                }
-            } catch (e) {
-                console.log('No se pudieron recuperar credenciales');
-            }
-
+            
+            // Mostrar modal de login
+            showLoginModal();
             return null;
         }
 
-        // Guardar credenciales en localStorage
-        function saveCredentialsToStorage(user, password) {
-            const credentials = btoa(`${user}:${password}`);
-            localStorage.setItem('access-ddns-credentials', credentials);
-            storedCredentials = credentials;
-            console.log('✅ Credenciales guardadas en localStorage');
+        // Mostrar modal de login
+        function showLoginModal() {
+            const modal = document.getElementById('loginModal');
+            modal.style.display = 'flex';
+            document.getElementById('loginUser').focus();
+            document.getElementById('loginUser').value = '';
+            document.getElementById('loginPassword').value = '';
         }
 
-        // Limpiar credenciales
-        function clearCredentialsFromStorage() {
+        // Procesar login
+        async function submitLogin() {
+            const user = document.getElementById('loginUser').value.trim();
+            const pass = document.getElementById('loginPassword').value.trim();
+
+            if (!user || !pass) {
+                alert('❌ Usuario y contraseña requeridos');
+                return;
+            }
+
+            // Guardar credenciales en localStorage
+            const credentials = btoa(`${user}:${pass}`);
+            localStorage.setItem('access-ddns-credentials', credentials);
+            currentUser = user;
+
+            console.log('✅ Credenciales guardadas en localStorage');
+
+            // Cerrar modal
+            document.getElementById('loginModal').style.display = 'none';
+
+            // Intentar cargar status
+            loadStatus();
+        }
+
+        // Limpiar credenciales (cuando hay 401)
+        function clearCredentials() {
             localStorage.removeItem('access-ddns-credentials');
-            storedCredentials = null;
             console.log('🗑️ Credenciales limpiadas');
+            showLoginModal();
         }
 
         // Capturar beforeinstallprompt
@@ -1009,31 +1106,29 @@
 
         async function loadStatus() {
             try {
+                const credentials = getCredentials();
+                if (!credentials) {
+                    // Usuario no ha ingresado credenciales
+                    return;
+                }
+
                 const clientIpResponse = await fetch('https://ipinfo.io/ip');
                 const clientIp = await clientIpResponse.text().then(ip => ip.trim());
                 
                 const timestamp = new Date().getTime();
-                const credentials = await getCredentials();
-                
                 const headers = {
+                    'Authorization': `Basic ${credentials}`,
                     'Cache-Control': 'no-cache, no-store, must-revalidate'
                 };
                 
-                if (credentials) {
-                    headers['Authorization'] = `Basic ${credentials}`;
-                }
-                
                 const response = await fetch(`/api/status?t=${timestamp}`, {
                     cache: 'no-store',
-                    credentials: 'include', // Enviar credenciales de Basic Auth
                     headers: headers
                 });
                 
                 if (response.status === 401) {
                     console.error('❌ 401 Unauthorized - credenciales inválidas');
-                    clearCredentialsFromStorage();
-                    document.getElementById('syncText').textContent = '❌ No autorizado';
-                    document.getElementById('syncText').style.color = '#f44336';
+                    clearCredentials();
                     return;
                 }
                 
@@ -1048,7 +1143,6 @@
                     await new Promise(r => setTimeout(r, 500));
                     const retryResponse = await fetch(`/api/status?t=${Date.now()}`, {
                         cache: 'no-store',
-                        credentials: 'include',
                         headers: headers
                     });
                     const retryData = await retryResponse.json();
@@ -1126,6 +1220,9 @@
             wasJustUpdated = true;
 
             try {
+                const credentials = getCredentials();
+                if (!credentials) return;
+
                 // Mostrar install prompt si está disponible (dentro de user gesture)
                 if (deferredPrompt) {
                     console.log('🔔 Mostrando install prompt en updateNow()');
@@ -1139,16 +1236,9 @@
                 const ipResponse = await fetch('https://ipinfo.io/ip');
                 const ip = await ipResponse.text();
 
-                const credentials = await getCredentials();
-                const headers = { 'Content-Type': 'application/json' };
-                if (credentials) {
-                    headers['Authorization'] = `Basic ${credentials}`;
-                }
-
                 const response = await fetch('/api/update?ip=' + ip.trim(), { 
                     method: 'POST',
-                    credentials: 'include',
-                    headers: headers
+                    headers: { 'Authorization': `Basic ${credentials}` }
                 });
                 const data = await response.json();
 
@@ -1156,6 +1246,9 @@
                     showMessage('✅ IP actualizada', 'success');
                     await new Promise(resolve => setTimeout(resolve, 500));
                     loadStatus();
+                } else if (response.status === 401) {
+                    clearCredentials();
+                    wasJustUpdated = false;
                 } else {
                     showMessage('❌ Error: ' + (data.error || 'Desconocido'), 'error');
                     wasJustUpdated = false;
@@ -1178,16 +1271,12 @@
             wasJustDisconnected = true;
 
             try {
-                const credentials = await getCredentials();
-                const headers = {};
-                if (credentials) {
-                    headers['Authorization'] = `Basic ${credentials}`;
-                }
+                const credentials = getCredentials();
+                if (!credentials) return;
 
                 const response = await fetch('/api/disconnect', { 
                     method: 'POST',
-                    credentials: 'include',
-                    headers: headers
+                    headers: { 'Authorization': `Basic ${credentials}` }
                 });
                 const data = await response.json();
 
@@ -1195,6 +1284,9 @@
                     showMessage('✅ ' + data.message, 'success');
                     await new Promise(resolve => setTimeout(resolve, 500));
                     loadStatus();
+                } else if (response.status === 401) {
+                    clearCredentials();
+                    wasJustDisconnected = false;
                 } else {
                     showMessage('❌ Error', 'error');
                     wasJustDisconnected = false;
@@ -1218,9 +1310,15 @@
             }
 
             try {
+                const credentials = getCredentials();
+                if (!credentials) return;
+
                 const response = await fetch('/api/credentials', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Basic ${credentials}`
+                    },
                     body: JSON.stringify({ user, password: pass })
                 });
                 const data = await response.json();
@@ -1231,8 +1329,12 @@
                     updateCredentialsDisplay();
                     document.getElementById('warningBox').classList.remove('show');
                     
-                    // Guardar en localStorage también
-                    saveCredentialsToStorage(user, pass);
+                    // Guardar también en localStorage para la próxima sesión
+                    const newCredentials = btoa(`${user}:${pass}`);
+                    localStorage.setItem('access-ddns-credentials', newCredentials);
+                    console.log('✅ Credenciales actualizadas en localStorage');
+                } else if (response.status === 401) {
+                    clearCredentials();
                 } else {
                     showMessage('❌ ' + (data.error || 'Error'), 'error');
                 }
