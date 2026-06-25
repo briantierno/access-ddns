@@ -175,13 +175,8 @@ app.UseStaticFiles(staticFileOptions);
 // Mapear ruta raíz (/) y /access a la misma acción
 Func<HttpContext, System.Threading.Tasks.Task> serveAccess = async (HttpContext context) =>
 {
-    if (appSettings.RequireAuthentication && !IsDefaultCredentials() && !ValidateAuth(context, out _))
-    {
-        context.Response.StatusCode = 401;
-        await context.Response.WriteAsync("Unauthorized");
-        return;
-    }
-
+    // / es accesible sin autenticación (devuelve siempre el HTML)
+    // La autenticación se valida en los endpoints /api/*
     context.Response.ContentType = "text/html; charset=utf-8";
     context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
     context.Response.Headers["Pragma"] = "no-cache";
