@@ -874,6 +874,7 @@
         let wasJustUpdated = false;
         let wasJustDisconnected = false;
         let deferredPrompt;
+        let statusIntervalId = null;
 
         // Bloquear scroll al iniciar (consola colapsada por defecto)
         document.body.style.overflowY = 'auto';
@@ -892,6 +893,9 @@
 
         // Mostrar modal de login
         function showLoginModal() {
+            // Pausar autorefresh
+            if (statusIntervalId) clearInterval(statusIntervalId);
+            
             const modal = document.getElementById('loginModal');
             modal.style.display = 'flex';
             document.getElementById('loginUser').focus();
@@ -927,6 +931,9 @@
             // Cerrar modal
             document.getElementById('loginModal').style.display = 'none';
 
+            // Reanudar autorefresh
+            statusIntervalId = setInterval(loadStatus, 3000);
+            
             // Intentar cargar status
             loadStatus();
         }
@@ -1361,8 +1368,14 @@
         }
 
         checkDefaults();
-        loadStatus();
-        setInterval(loadStatus, 3000);
+        
+        // Iniciar: mostrar modal si no hay credenciales, sino cargar status
+        if (!localStorage.getItem('access-ddns-credentials')) {
+            showLoginModal();
+        } else {
+            loadStatus();
+            statusIntervalId = setInterval(loadStatus, 3000);
+        }
 
         // Register Service Worker for PWA
         if ('serviceWorker' in navigator) {
