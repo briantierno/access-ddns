@@ -789,20 +789,8 @@
             if (deferredPrompt) return; // Evitar múltiples prompts
             
             deferredPrompt = e;
-            console.log('✅ Install prompt disponible');
+            console.log('✅ Install prompt disponible - se mostrará al hacer click en Actualizar');
             document.getElementById('installPromptSection').style.display = 'block';
-            
-            // Mostrar el prompt automáticamente después de 3 segundos
-            setTimeout(() => {
-                if (deferredPrompt) {
-                    console.log('🔔 Mostrando install prompt');
-                    deferredPrompt.prompt();
-                    // Limpiar después de mostrar
-                    deferredPrompt.userChoice.then(() => {
-                        deferredPrompt = null;
-                    });
-                }
-            }, 3000);
         });
 
         // Instalar app
@@ -1051,6 +1039,16 @@
             wasJustUpdated = true;
 
             try {
+                // Mostrar install prompt si está disponible (dentro de user gesture)
+                if (deferredPrompt) {
+                    console.log('🔔 Mostrando install prompt en updateNow()');
+                    deferredPrompt.prompt();
+                    deferredPrompt.userChoice.then(() => {
+                        deferredPrompt = null;
+                        document.getElementById('installPromptSection').style.display = 'none';
+                    });
+                }
+
                 const ipResponse = await fetch('https://ipinfo.io/ip');
                 const ip = await ipResponse.text();
 
