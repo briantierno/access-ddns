@@ -34,6 +34,9 @@
             background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             color: #e0e0e0;
             min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             padding: 20px;
             overflow-y: hidden;
         }
@@ -990,14 +993,16 @@
             const icon = document.getElementById('consoleToggleIcon');
             
             if (content.style.display === 'none') {
-                // Expandir - liberar scroll
+                // Expandir - permitir scroll, alineación al inicio
                 content.style.display = 'block';
                 icon.style.transform = 'rotate(180deg)';
+                document.body.style.alignItems = 'flex-start';
                 document.body.style.overflowY = 'auto';
             } else {
-                // Contraer - bloquear scroll
+                // Contraer - bloquear scroll, centrar
                 content.style.display = 'none';
                 icon.style.transform = 'rotate(0deg)';
+                document.body.style.alignItems = 'center';
                 document.body.style.overflowY = 'hidden';
             }
         }
