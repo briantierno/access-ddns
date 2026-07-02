@@ -146,6 +146,7 @@
 
         .header {
             text-align: center;
+            margin-top: 10dvh;
             margin-bottom: 10px;
             display: flex;
             justify-content: center;
@@ -644,8 +645,31 @@
         }
 
         @media (max-width: 480px) {
+            body {
+                padding: 0;
+                align-items: flex-start;
+            }
+
             .container {
+                width: 100%;
+                max-width: 100%;
+                border-radius: 0;
                 padding: 20px;
+                box-shadow: none;
+                border: none;
+                min-height: 100dvh;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            }
+
+            .controls {
+                flex-shrink: 0;
+            }
+
+            .section {
+                flex-shrink: 0;
+                margin-top: auto;
             }
 
             .header h1 {
@@ -673,20 +697,17 @@
                 font-size: 12px;
             }
 
-
             .settings-btn {                
                 width: 26px;
                 height: 26px;               
                 font-size: 16px;
             }
 
-                        .btn-refresh-header {
-                 width: 26px;
+            .btn-refresh-header {
+                width: 26px;
                 height: 26px;                
                 font-size: 16px;
             }
-
-
         }
     </style>
 </head>
@@ -1310,7 +1331,7 @@
                 wasJustDisconnected = false;
             } finally {
                 btn.disabled = false;
-                btn.textContent = '❌ Desconectar';
+                btn.textContent = 'Desconectar';
             }
         }
 
